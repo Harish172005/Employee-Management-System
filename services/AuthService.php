@@ -1,0 +1,77 @@
+<?php
+
+class AuthService
+{
+    public function login(string $username, string $password): array
+    {
+        if ($username === '' || $password === '') {
+            return [
+                'success' => false,
+                'message' => 'Username and password are required.'
+            ];
+        }
+
+        require_once __DIR__ . '/../config/dbConfig.php';
+        require_once __DIR__ . '/../utilities/PasswordHasher.php';
+
+        $conn = DBConfig::getConnection();
+
+        $stmt = $conn->prepare(
+            "SELECT id, name, username, email, password, role, status
+             FROM users
+             WHERE username = :username
+             LIMIT 1"
+        );
+
+        $stmt->execute([
+            ':username' => $username
+        ]);
+
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $genericError = 'Invalid username or password.';
+
+        if (!$user) {
+            return [
+                'success' => false,
+                'message' => $genericError
+            ];
+        }
+
+        if ($user['status'] !== 'active') {
+            return [
+                'success' => false,
+                'message' => 'This account has been deactivated.'
+            ];
+        }
+
+        if (!PasswordHasher::verify($password, $user['password'])) {
+            return [
+                'success' => false,
+                'message' => $genericError
+            ];
+        }
+
+        session_regenerate_id(true);
+
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_name'] = $user['name'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['email'] = $user['email'];
+        $_SESSION['role'] = $user['role'];
+        $_SESSION['status'] = $user['status'];
+
+        return [
+            'success' => true,
+            'message' => 'Login successful.',
+            'user' => [
+                'id' => $user['id'],
+                'name' => $user['name'],
+                'username' => $user['username'],
+                'email' => $user['email'],
+                'role' => $user['role'],
+                'status' => $user['status']
+            ]
+        ];
+    }
+}
