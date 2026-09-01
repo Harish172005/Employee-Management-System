@@ -120,7 +120,7 @@ class AuthService
 
     $userId = $_SESSION['user_id'];
 
-    $user = $userModel->getUserByPassword($userId);
+    $user = $userModel->getUserById($userId);
 
     if (!$user) {
         return [

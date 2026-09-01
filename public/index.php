@@ -40,6 +40,28 @@ if ($method === 'GET' && $uri === 'admin') {
     exit;
 }
 
+if ($method === 'GET' && $uri === 'admin/add-user') {
+
+    require __DIR__ . '/../middlewares/AuthMiddleware.php';
+
+    AuthMiddleware::requireRole(['admin']);
+
+    require __DIR__ . '/../views/pages/add-user.html';
+
+    exit;
+}
+
+if ($method === 'GET' && $uri === 'admin/add-employee') {
+
+    require __DIR__ . '/../middlewares/AuthMiddleware.php';
+
+    AuthMiddleware::requireRole(['admin']);
+
+    require __DIR__ . '/../views/pages/add-employee.html';
+
+    exit;
+}
+
 if ($method === 'GET' && $uri === 'change-password') {
 
     require __DIR__ . '/../views/pages/change-password.html';
