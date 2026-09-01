@@ -1,5 +1,3 @@
-
-
 document.addEventListener('DOMContentLoaded', function () {
 
     const loginForm = document.getElementById('loginForm');
@@ -40,22 +38,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 const data = await response.json();
-                
 
                 if (response.ok && data.success) {
 
                     console.log('Login successful');
 
-                    // Redirect based on role
                     const role = data.user.role;
 
-                   if (role === 'admin') {
-                       window.location.href = '/admin';
-                 } 
-                else {
+                    if (role === 'admin') {
+                        window.location.href = '/admin';
+                    } else {
                         window.location.href = '/employee';
-                  }
-                     
+                    }
+
                 } else {
 
                     showError(
@@ -76,14 +71,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Show error
     function showError(message) {
 
         errorMessage.textContent = message;
         errorMessage.classList.remove('d-none');
     }
 
-    // Clear error on input
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
 

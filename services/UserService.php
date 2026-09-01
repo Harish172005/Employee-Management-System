@@ -1,23 +1,15 @@
 <?php
 
 require_once __DIR__ . '/../config/dbConfig.php';
-require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/UserRepository.php';
 require_once __DIR__ . '/../utilities/PasswordHasher.php';
 require_once __DIR__ . '/../utilities/PasswordValidator.php';
 require_once __DIR__ . '/../utilities/EmailValidator.php';
 
 class UserService
 {
-    public function createUser(array $data, string $currentRole): array
+    public function createUser(array $data): array
     {
-        if ($currentRole !== 'admin') {
-            return [
-                'success' => false,
-                'message' => 'Only admins can create users.',
-                'statusCode' => 403
-            ];
-        }
-
         $name = trim((string)($data['name'] ?? ''));
         $email = trim((string)($data['email'] ?? ''));
         $username = trim((string)($data['username'] ?? ''));

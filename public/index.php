@@ -15,6 +15,14 @@ if (str_starts_with($uri, 'api/')) {
 
     require __DIR__ . '/../routes/AuthRoutes.php';
 
+    if (str_starts_with($uri, 'api/users/')) {
+        require __DIR__ . '/../routes/UserRoutes.php';
+    }
+
+    if (str_starts_with($uri, 'api/employees/')) {
+        require __DIR__ . '/../routes/EmployeeRoutes.php';
+    }
+
     exit;
 }
 

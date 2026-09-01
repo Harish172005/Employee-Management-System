@@ -3,11 +3,11 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 require_once __DIR__ . '/../middlewares/AuthMiddleware.php';
-require_once __DIR__ . '/../services/UserService.php';
+require_once __DIR__ . '/../services/EmployeeService.php';
 
-class UserController
+class EmployeeController
 {
-    public function createUser(): void
+    public function createEmployee(): void
     {
         header('Content-Type: application/json');
 
@@ -16,8 +16,8 @@ class UserController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $service = new UserService();
-        $result = $service->createUser(
+        $service = new EmployeeService();
+        $result = $service->createEmployee(
             $data ?? []
         );
 
