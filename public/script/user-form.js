@@ -7,6 +7,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    async function getCsrfToken() {
+        const response = await fetch('/api/auth/csrf-token', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.token) {
+            throw new Error('Unable to initialize secure form.');
+        }
+
+        return data.token;
+    }
+
     const form = document.getElementById('addUserForm');
     const messageBox = document.getElementById('formMessage');
 
@@ -28,9 +43,14 @@ document.addEventListener('DOMContentLoaded', function () {
         messageBox.textContent = '';
 
         try {
+            const csrfToken = await getCsrfToken();
+
             const response = await fetch('/api/users/create', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
+                },
                 credentials: 'include',
                 body: JSON.stringify(payload)
             });
