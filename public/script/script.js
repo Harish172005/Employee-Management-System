@@ -39,9 +39,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     })
                 });
 
-                // const data = await response.json();
-                const data = await response.text();
-                console.log(data);
+                const data = await response.json();
+                
 
                 if (response.ok && data.success) {
 

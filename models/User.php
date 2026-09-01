@@ -24,6 +24,22 @@ class UserRepository
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    public function getUserByPassword($userId)
+    {
+    $stmt = $this->conn->prepare(
+        "SELECT id, password
+         FROM users
+         WHERE id = :id
+         LIMIT 1"
+    );
+
+    $stmt->execute([
+        ':id' => $userId
+    ]);
+
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public function updatePassword(int $userId, string $password): bool
     {
         $stmt = $this->conn->prepare(

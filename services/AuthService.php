@@ -1,5 +1,10 @@
 <?php
 
+require_once __DIR__ . '/../config/dbConfig.php';
+require_once __DIR__ . '/../utilities/PasswordHasher.php';
+require_once __DIR__ . '/../utilities/PasswordValidator.php';
+  require_once __DIR__ . '/../models/User.php';
+
 class AuthService
 {
     public function login(string $username, string $password): array
@@ -10,7 +15,6 @@ class AuthService
                 'message' => 'Username and password are required.'
             ];
         }
-        require_once __DIR__ . '/../utilities/PasswordValidator.php';
 
         $passwordErrors = PasswordValidator::validate($password);
 
@@ -20,10 +24,6 @@ class AuthService
                 'message' => $passwordErrors[0]
             ];
         }
-
-
-        require_once __DIR__ . '/../config/dbConfig.php';
-        require_once __DIR__ . '/../utilities/PasswordHasher.php';
 
 
         $user = new UserRepository(DBConfig::getConnection());
@@ -102,4 +102,80 @@ class AuthService
     'message' => 'Logged out successfully.'
 ];
     }
+
+    public function changePassword(
+    string $currentPassword,
+    string $newPassword
+): array {
+
+    if ($currentPassword === '' || $newPassword === '') {
+        return [
+            'success' => false,
+            'message' => 'All fields are required.'
+        ];
+    }
+
+    $conn = DBConfig::getConnection();
+
+    $userModel = new UserRepository($conn);
+
+    $userId = $_SESSION['user_id'];
+
+    $user = $userModel->getUserByPassword($userId);
+
+    if (!$user) {
+        return [
+            'success' => false,
+            'message' => 'User not found.'
+        ];
+    }
+
+    if (!PasswordHasher::verify(
+        $currentPassword,
+        $user['password']
+    )) {
+        return [
+            'success' => false,
+            'message' => 'Current password is incorrect.'
+        ];
+    }
+
+    $errors = PasswordValidator::validate($newPassword);
+
+    if (!empty($errors)) {
+        return [
+            'success' => false,
+            'message' => $errors[0]
+        ];
+    }
+
+    if (PasswordHasher::verify(
+        $newPassword,
+        $user['password']
+    )) {
+        return [
+            'success' => false,
+            'message' => 'New password must be different from the current password.'
+        ];
+    }
+
+    $hashedPassword = PasswordHasher::hash($newPassword);
+
+    $updated = $userModel->updatePassword(
+        $userId,
+        $hashedPassword
+    );
+
+    if (!$updated) {
+        return [
+            'success' => false,
+            'message' => 'Failed to change password.'
+        ];
+    }
+
+    return [
+        'success' => true,
+        'message' => 'Password changed successfully.'
+    ];
+}
 }

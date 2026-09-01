@@ -40,6 +40,12 @@ if ($method === 'GET' && $uri === 'admin') {
     exit;
 }
 
+if ($method === 'GET' && $uri === 'change-password') {
+
+    require __DIR__ . '/../views/pages/change-password.html';
+    exit;
+}
+
 
 if ($method === 'GET' && $uri === 'employee') {
 

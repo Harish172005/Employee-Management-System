@@ -21,17 +21,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $uri === 'api/auth/logout') {
     $controller = new AuthController();
     $controller->logout();
     exit;
-} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && $uri === 'api/auth/check') {
-    header('Content-Type: application/json');
+} 
 
-    if (isset($_SESSION['user_id'])) {
-        $user = AuthMiddleware::getCurrentUser();
-        http_response_code(200);
-        echo json_encode(['success' => true, 'user' => $user]);
-    } else {
-        http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Not authenticated']);
-    }
+elseif (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    $uri === 'api/auth/change-password'
+) {
+
+    AuthMiddleware::requireLogin();
+
+    $controller = new AuthController();
+
+    $controller->changePassword();
 
     exit;
 }

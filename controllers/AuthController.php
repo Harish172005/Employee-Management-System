@@ -32,4 +32,36 @@ class AuthController
         $result = $service->logout();
         echo json_encode($result);
     }
+
+    public function changePassword()
+    {
+    header('Content-Type: application/json');
+
+    $data = json_decode(
+        file_get_contents('php://input'),
+        true
+    );
+
+    $currentPassword = $data['currentPassword'] ?? '';
+    $newPassword = $data['newPassword'] ?? '';
+
+    $service = new AuthService();
+
+    $result = $service->changePassword(
+        $currentPassword,
+        $newPassword
+    );
+
+    if ($result['success']) {
+
+        http_response_code(200);
+
+    } else {
+
+        http_response_code(400);
+
+    }
+
+    echo json_encode($result);
+  }
 }
