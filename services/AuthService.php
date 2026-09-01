@@ -16,15 +16,14 @@ class AuthService
             ];
         }
 
-        $passwordErrors = PasswordValidator::validate($password);
+        // $passwordErrors = PasswordValidator::validate($password);
 
-        if (!empty($passwordErrors)) {
-            return [
-                'success' => false,
-                'message' => $passwordErrors[0]
-            ];
-        }
-
+        // if (!empty($passwordErrors)) {
+        //     return [
+        //         'success' => false,
+        //         'message' => $passwordErrors[0]
+        //     ];
+        // }
 
         $user = new UserRepository(DBConfig::getConnection());
         $user = $user->findByUsername($username);
