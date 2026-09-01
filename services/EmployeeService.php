@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../config/dbConfig.php';
 require_once __DIR__ . '/../models/UserRepository.php';
 require_once __DIR__ . '/../utilities/EmailValidator.php';
+require_once __DIR__ . '/../utilities/FileValidator.php';
 
 class EmployeeService
 {
@@ -30,6 +31,31 @@ class EmployeeService
                     'success' => false,
                     'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required.',
                     'statusCode' => 400
+                ];
+            }
+        }
+
+        $uploadedPhotoPath = null;
+        if (isset($_FILES['profile_photo']) && $_FILES['profile_photo']['error'] !== UPLOAD_ERR_NO_FILE) {
+            $file = $_FILES['profile_photo'];
+            $fileErrors = FileValidator::validate($file);
+
+            if (!empty($fileErrors)) {
+                return [
+                    'success' => false,
+                    'message' => $fileErrors[0],
+                    'statusCode' => 400
+                ];
+            }
+
+            $uploadDir = __DIR__ . '/../public/uploads/profile-photos/';
+            $uploadedPhotoPath = FileValidator::moveUploadedFile($file, $uploadDir);
+
+            if ($uploadedPhotoPath === null) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to upload the profile photo.',
+                    'statusCode' => 500
                 ];
             }
         }
@@ -118,7 +144,7 @@ class EmployeeService
             ':designation' => trim((string)$data['designation']),
             ':salary' => (float)$data['salary'],
             ':address' => trim((string)$data['address']),
-            ':profile_photo' => trim((string)($data['profile_photo'] ?? '')) ?: null,
+            ':profile_photo' => $uploadedPhotoPath,
             ':status' => $status
         ]);
 

@@ -30,22 +30,26 @@ document.addEventListener('DOMContentLoaded', function () {
     form.addEventListener('submit', async function (event) {
         event.preventDefault();
 
-        const payload = {
-            employee_id: document.getElementById('employee_id').value.trim(),
-            first_name: document.getElementById('first_name').value.trim(),
-            last_name: document.getElementById('last_name').value.trim(),
-            email: document.getElementById('email').value.trim(),
-            phone: document.getElementById('phone').value.trim(),
-            date_of_birth: document.getElementById('date_of_birth').value,
-            gender: document.getElementById('gender').value,
-            date_of_joining: document.getElementById('date_of_joining').value,
-            department: document.getElementById('department').value.trim(),
-            designation: document.getElementById('designation').value.trim(),
-            salary: document.getElementById('salary').value,
-            address: document.getElementById('address').value.trim(),
-            profile_photo: document.getElementById('profile_photo').value.trim(),
-            status: document.getElementById('status').value
-        };
+        const formData = new FormData();
+        const photoInput = document.getElementById('profile_photo');
+
+        formData.append('employee_id', document.getElementById('employee_id').value.trim());
+        formData.append('first_name', document.getElementById('first_name').value.trim());
+        formData.append('last_name', document.getElementById('last_name').value.trim());
+        formData.append('email', document.getElementById('email').value.trim());
+        formData.append('phone', document.getElementById('phone').value.trim());
+        formData.append('date_of_birth', document.getElementById('date_of_birth').value);
+        formData.append('gender', document.getElementById('gender').value);
+        formData.append('date_of_joining', document.getElementById('date_of_joining').value);
+        formData.append('department', document.getElementById('department').value.trim());
+        formData.append('designation', document.getElementById('designation').value.trim());
+        formData.append('salary', document.getElementById('salary').value);
+        formData.append('address', document.getElementById('address').value.trim());
+        formData.append('status', document.getElementById('status').value);
+
+        if (photoInput && photoInput.files && photoInput.files[0]) {
+            formData.append('profile_photo', photoInput.files[0]);
+        }
 
         messageBox.className = 'alert d-none mt-4';
         messageBox.textContent = '';
@@ -56,11 +60,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const response = await fetch('/api/employees/create', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRF-Token': csrfToken
                 },
                 credentials: 'include',
-                body: JSON.stringify(payload)
+                body: formData
             });
 
             const data = await response.json();

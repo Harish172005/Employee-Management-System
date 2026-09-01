@@ -44,7 +44,7 @@
                         <h3 class="mb-0">Add Employee</h3>
                     </div>
                     <div class="card-body p-4">
-                        <form id="addEmployeeForm">
+                        <form id="addEmployeeForm" enctype="multipart/form-data">
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="employee_id" class="form-label">Employee ID</label>
@@ -109,7 +109,7 @@
                                 </div>
                                 <div class="col-12">
                                     <label for="profile_photo" class="form-label">Profile Photo</label>
-                                    <input type="text" class="form-control" id="profile_photo" name="profile_photo" placeholder="Optional image URL">
+                                    <input type="file" class="form-control" id="profile_photo" name="profile_photo" accept="image/*">
                                 </div>
                             </div>
 
