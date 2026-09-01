@@ -10,20 +10,24 @@ class UserService
 {
     public function createUser(array $data): array
     {
-        $name = trim((string)($data['name'] ?? ''));
-        $email = trim((string)($data['email'] ?? ''));
-        $username = trim((string)($data['username'] ?? ''));
-        $password = (string)($data['password'] ?? '');
-        $role = trim((string)($data['role'] ?? ''));
-        $status = trim((string)($data['status'] ?? ''));
+        $requiredFields = ['name', 'email', 'username', 'password', 'role', 'status'];
 
-        if ($name === '' || $email === '' || $username === '' || $password === '' || $role === '' || $status === '') {
-            return [
-                'success' => false,
-                'message' => 'All fields are required.',
-                'statusCode' => 400
-            ];
+        foreach ($requiredFields as $field) {
+            if (!isset($data[$field]) || trim((string)$data[$field]) === '') {
+                return [
+                    'success' => false,
+                    'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required.',
+                    'statusCode' => 400
+                ];
+            }
         }
+
+        $name = trim((string)$data['name']);
+        $email = trim((string)$data['email']);
+        $username = trim((string)$data['username']);
+        $password = (string)$data['password'];
+        $role = trim((string)$data['role']);
+        $status = trim((string)$data['status']);
 
         $emailErrors = EmailValidator::validate($email);
         if (!empty($emailErrors)) {

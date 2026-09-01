@@ -59,6 +59,7 @@ class AuthService
         $_SESSION['email'] = $user['email'];
         $_SESSION['role'] = $user['role'];
         $_SESSION['status'] = $user['status'];
+        $_SESSION['last_activity'] = time();
 
         return [
             'success' => true,

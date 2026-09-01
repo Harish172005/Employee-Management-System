@@ -24,13 +24,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
-
                     headers: {
                         'Content-Type': 'application/json'
                     },
-
                     credentials: 'include',
-
                     body: JSON.stringify({
                         username: username,
                         password: password
@@ -40,9 +37,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-
-                    console.log('Login successful');
-
                     const role = data.user.role;
 
                     if (role === 'admin') {
@@ -50,9 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     } else {
                         window.location.href = '/employee';
                     }
-
                 } else {
-
                     showError(
                         data.error ||
                         data.message ||
@@ -61,9 +53,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
             } catch (error) {
-
-                console.error('Error:', error);
-
                 showError(
                     'An error occurred. Please try again.'
                 );
@@ -72,7 +61,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showError(message) {
-
         errorMessage.textContent = message;
         errorMessage.classList.remove('d-none');
     }
@@ -89,7 +77,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function clearError() {
-
         errorMessage.textContent = '';
         errorMessage.classList.add('d-none');
     }
