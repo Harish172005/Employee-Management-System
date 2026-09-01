@@ -28,10 +28,8 @@ class AuthController
     
     public function logout()
     {
-        header('Content-Type: application/json');
-        
-        session_destroy();
-        http_response_code(200);
-        echo json_encode(['success' => true, 'message' => 'Logged out successfully']);
+        $service = new AuthService();
+        $result = $service->logout();
+        echo json_encode($result);
     }
 }

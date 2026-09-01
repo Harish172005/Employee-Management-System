@@ -23,7 +23,7 @@ if (str_starts_with($uri, 'api/')) {
 
 if ($method === 'GET' && $uri === 'login') {
 
-    require __DIR__ . '/../views/pages/login.php';
+    require __DIR__ . '/../views/pages/login.html';
 
     exit;
 }

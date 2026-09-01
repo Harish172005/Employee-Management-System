@@ -7,21 +7,23 @@ if ($uri === 'api/auth/login' && $method === 'POST') {
     $controller->login();
     exit;
 }
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $uri === 'api/auth/login') {
-    // Get the form data
+    require_once __DIR__ . '/../controllers/AuthController.php';
     $controller = new AuthController();
     $controller->login();
+    exit;
 }
 
-// Logout Route
-elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && $uri === 'api/auth/logout') {
+require_once __DIR__ . '/../controllers/AuthController.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $uri === 'api/auth/logout') {
     $controller = new AuthController();
     $controller->logout();
-}
-
-elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && $uri === 'api/auth/check') {
+    exit;
+} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && $uri === 'api/auth/check') {
     header('Content-Type: application/json');
-    
+
     if (isset($_SESSION['user_id'])) {
         $user = AuthMiddleware::getCurrentUser();
         http_response_code(200);
@@ -30,4 +32,6 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && $uri === 'api/auth/check') {
         http_response_code(401);
         echo json_encode(['success' => false, 'message' => 'Not authenticated']);
     }
+
+    exit;
 }

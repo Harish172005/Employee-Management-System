@@ -1,0 +1,11 @@
+# Environment / secrets
+.env
+
+# Dependencies
+/vendor/
+
+# Database files / local database data
+/database/
+
+# Local Apache configuration
+.htaccess

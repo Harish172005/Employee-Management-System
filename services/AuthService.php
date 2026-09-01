@@ -10,6 +10,17 @@ class AuthService
                 'message' => 'Username and password are required.'
             ];
         }
+        require_once __DIR__ . '/../utilities/PasswordValidator.php';
+
+        $passwordErrors = PasswordValidator::validate($password);
+
+        if (!empty($passwordErrors)) {
+            return [
+                'success' => false,
+                'message' => $passwordErrors[0]
+            ];
+        }
+
 
         require_once __DIR__ . '/../config/dbConfig.php';
         require_once __DIR__ . '/../utilities/PasswordHasher.php';
@@ -73,5 +84,33 @@ class AuthService
                 'status' => $user['status']
             ]
         ];
+    }
+    public function logout(): array
+    {
+        header('Content-Type: application/json');
+
+    $_SESSION = [];
+
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $params['path'],
+            $params['domain'],
+            $params['secure'],
+            $params['httponly']
+        );
+    }
+    session_destroy();
+
+    http_response_code(200);
+
+   return [
+    'success' => true,
+    'message' => 'Logged out successfully.'
+];
     }
 }
