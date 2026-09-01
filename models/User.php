@@ -1,37 +1,40 @@
 <?php
-
-class User
+class UserRepository
 {
-    private int $id;
-    private string $name;
-    private string $username;
-    private string $email;
-    private string $role;
-    private string $status;
+    private PDO $conn;
 
-    public function __construct(
-        int $id,
-        string $name,
-        string $username,
-        string $email,
-        string $role,
-        string $status
-    ) {
-        $this->id = $id;
-        $this->name = $name;
-        $this->username = $username;
-        $this->email = $email;
-        $this->role = $role;
-        $this->status = $status;
+    public function __construct(PDO $conn)
+    {
+        $this->conn = $conn;
     }
 
-    public function getId(): int
+    public function findByUsername(string $username)
     {
-        return $this->id;
+        $stmt = $this->conn->prepare(
+            "SELECT id, name, username, email, password, role, status
+             FROM users
+             WHERE username = :username
+             LIMIT 1"
+        );
+
+        $stmt->execute([
+            ':username' => $username
+        ]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function getRole(): string
+    public function updatePassword(int $userId, string $password): bool
     {
-        return $this->role;
+        $stmt = $this->conn->prepare(
+            "UPDATE users
+             SET password = :password
+             WHERE id = :id"
+        );
+
+        return $stmt->execute([
+            ':password' => $password,
+            ':id' => $userId
+        ]);
     }
 }

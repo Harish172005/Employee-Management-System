@@ -25,20 +25,9 @@ class AuthService
         require_once __DIR__ . '/../config/dbConfig.php';
         require_once __DIR__ . '/../utilities/PasswordHasher.php';
 
-        $conn = DBConfig::getConnection();
 
-        $stmt = $conn->prepare(
-            "SELECT id, name, username, email, password, role, status
-             FROM users
-             WHERE username = :username
-             LIMIT 1"
-        );
-
-        $stmt->execute([
-            ':username' => $username
-        ]);
-
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        $user = new UserRepository(DBConfig::getConnection());
+        $user = $user->findByUsername($username);
 
         $genericError = 'Invalid username or password.';
 
