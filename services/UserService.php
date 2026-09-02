@@ -2,24 +2,21 @@
 
 require_once __DIR__ . '/../config/dbConfig.php';
 require_once __DIR__ . '/../models/UserRepository.php';
+require_once __DIR__ . '/../traits/FieldValidationTrait.php';
 require_once __DIR__ . '/../utilities/PasswordHasher.php';
 require_once __DIR__ . '/../utilities/PasswordValidator.php';
 require_once __DIR__ . '/../utilities/EmailValidator.php';
 
 class UserService
 {
+    use FieldValidationTrait;
     public function createUser(array $data): array
     {
         $requiredFields = ['name', 'email', 'username', 'password', 'role', 'status'];
 
-        foreach ($requiredFields as $field) {
-            if (!isset($data[$field]) || trim((string)$data[$field]) === '') {
-                return [
-                    'success' => false,
-                    'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required.',
-                    'statusCode' => 400
-                ];
-            }
+        $requiredError = $this->validateRequiredFields($data, $requiredFields);
+        if ($requiredError !== null) {
+            return $requiredError;
         }
 
         $name = trim((string)$data['name']);

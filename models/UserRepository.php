@@ -1,16 +1,13 @@
 <?php
-class UserRepository
+
+require_once __DIR__ . '/BaseRepository.php';
+require_once __DIR__ . '/UserRepositoryInterface.php';
+
+class UserRepository extends BaseRepository implements UserRepositoryInterface
 {
-    private PDO $conn;
-
-    public function __construct(PDO $conn)
-    {
-        $this->conn = $conn;
-    }
-
     public function findByUsername(string $username)
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->getConnection()->prepare(
             "SELECT id, name, username, email, password, role, status
              FROM users
              WHERE username = :username
@@ -26,7 +23,7 @@ class UserRepository
 
     public function findByEmail(string $email)
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->getConnection()->prepare(
             "SELECT id, name, username, email, password, role, status
              FROM users
              WHERE email = :email
@@ -48,7 +45,7 @@ class UserRepository
         string $role,
         string $status
     ): bool {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->getConnection()->prepare(
             "INSERT INTO users (name, email, username, password, role, status)
              VALUES (:name, :email, :username, :password, :role, :status)"
         );
@@ -65,7 +62,7 @@ class UserRepository
 
     public function getUserById($userId)
     {
-    $stmt = $this->conn->prepare(
+    $stmt = $this->getConnection()->prepare(
         "SELECT id, password
          FROM users
          WHERE id = :id
@@ -81,7 +78,7 @@ class UserRepository
 
     public function updatePassword(int $userId, string $password): bool
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->getConnection()->prepare(
             "UPDATE users
              SET password = :password
              WHERE id = :id"

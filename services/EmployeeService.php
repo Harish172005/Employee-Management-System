@@ -2,11 +2,65 @@
 
 require_once __DIR__ . '/../config/dbConfig.php';
 require_once __DIR__ . '/../models/EmployeeRepository.php';
+require_once __DIR__ . '/../traits/FieldValidationTrait.php';
 require_once __DIR__ . '/../utilities/EmailValidator.php';
 require_once __DIR__ . '/../utilities/FileValidator.php';
 
 class EmployeeService
 {
+    use FieldValidationTrait;
+    public function getEmployees(array $filters = []): array
+    {
+        try {
+            $conn = DBConfig::getConnection();
+            $employeeRepository = new EmployeeRepository($conn);
+
+            $search = isset($filters['search']) ? trim((string)$filters['search']) : null;
+            $status = isset($filters['status']) ? trim((string)$filters['status']) : null;
+            $department = isset($filters['department']) ? trim((string)$filters['department']) : null;
+
+            if ($status !== '' && !in_array($status, ['active', 'inactive'], true)) {
+                return [
+                    'success' => false,
+                    'message' => 'Invalid status filter.',
+                    'statusCode' => 400
+                ];
+            }
+
+            $allowedDepartments = [
+                'IT',
+                'Finance',
+                'Marketing',
+                'Sales',
+                'Operations',
+                'Administration',
+                'Customer Support',
+                'Research & Development',
+                'Quality Assurance'
+            ];
+
+            if ($department !== '' && !in_array($department, $allowedDepartments, true)) {
+                return [
+                    'success' => false,
+                    'message' => 'Invalid department filter.',
+                    'statusCode' => 400
+                ];
+            }
+
+            return [
+                'success' => true,
+                'data' => $employeeRepository->getFiltered($search !== '' ? $search : null, $status !== '' ? $status : null, $department !== '' ? $department : null),
+                'statusCode' => 200
+            ];
+        } catch (Throwable $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to fetch employees.',
+                'statusCode' => 500
+            ];
+        }
+    }
+
     public function createEmployee(array $data): array
     {
         $requiredFields = [
@@ -24,14 +78,9 @@ class EmployeeService
             'status'
         ];
 
-        foreach ($requiredFields as $field) {
-            if (!isset($data[$field]) || trim((string)$data[$field]) === '') {
-                return [
-                    'success' => false,
-                    'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required.',
-                    'statusCode' => 400
-                ];
-            }
+        $requiredError = $this->validateRequiredFields($data, $requiredFields);
+        if ($requiredError !== null) {
+            return $requiredError;
         }
 
         $uploadedPhotoPath = null;

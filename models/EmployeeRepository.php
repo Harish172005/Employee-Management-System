@@ -1,14 +1,10 @@
 <?php
 
-class EmployeeRepository
+require_once __DIR__ . '/BaseRepository.php';
+require_once __DIR__ . '/EmployeeRepositoryInterface.php';
+
+class EmployeeRepository extends BaseRepository implements EmployeeRepositoryInterface
 {
-    private PDO $conn;
-
-    public function __construct(PDO $conn)
-    {
-        $this->conn = $conn;
-    }
-
     public function create(
         string $firstName,
         string $lastName,
@@ -24,7 +20,7 @@ class EmployeeRepository
         ?string $profilePhoto,
         string $status
     ): bool {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->getConnection()->prepare(
             'INSERT INTO employees (
                 first_name,
                 last_name,
@@ -71,5 +67,62 @@ class EmployeeRepository
             ':profile_photo' => $profilePhoto,
             ':status' => $status
         ]);
+    }
+
+    public function getAll(): array
+    {
+        $stmt = $this->getConnection()->query(
+            'SELECT *
+             FROM employees
+             ORDER BY created_at DESC'
+        );
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getById(int $id): ?array
+    {
+        $stmt = $this->getConnection()->prepare(
+            'SELECT * FROM employees WHERE id = :id'
+        );
+        $stmt->execute([':id' => $id]);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
+    }
+
+    public function getFiltered(?string $search = null, ?string $status = null, ?string $department = null): array
+    {
+        $sql = 'SELECT * FROM employees WHERE 1=1';
+        $params = [];
+
+        if ($search !== null && $search !== '') {
+            $sql .= ' AND (
+                first_name LIKE :search OR
+                last_name LIKE :search OR
+                email LIKE :search OR
+                phone LIKE :search OR
+                department LIKE :search OR
+                designation LIKE :search
+            )';
+            $params[':search'] = '%' . $search . '%';
+        }
+
+        if ($status !== null && $status !== '') {
+            $sql .= ' AND status = :status';
+            $params[':status'] = $status;
+        }
+
+        if ($department !== null && $department !== '') {
+            $sql .= ' AND department = :department';
+            $params[':department'] = $department;
+        }
+
+        $sql .= ' ORDER BY created_at DESC';
+
+        $stmt = $this->getConnection()->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
