@@ -19,7 +19,7 @@ class EmployeeService
             $status = isset($filters['status']) ? trim((string)$filters['status']) : null;
             $department = isset($filters['department']) ? trim((string)$filters['department']) : null;
 
-            if ($status !== '' && !in_array($status, ['active', 'inactive'], true)) {
+            if ($status !== null && $status !== '' && !in_array($status, ['active', 'inactive'], true)) {
                 return [
                     'success' => false,
                     'message' => 'Invalid status filter.',
@@ -39,7 +39,7 @@ class EmployeeService
                 'Quality Assurance'
             ];
 
-            if ($department !== '' && !in_array($department, $allowedDepartments, true)) {
+            if ($department !== null && $department !== '' && !in_array($department, $allowedDepartments, true)) {
                 return [
                     'success' => false,
                     'message' => 'Invalid department filter.',

@@ -1,3 +1,110 @@
+// Global function to view employee info - must be in global scope for onclick handler
+async function viewEmployeeInfo(employeeId) {
+    try {
+        const response = await fetch(`/api/employees/${employeeId}`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Unable to load employee details.');
+        }
+
+        const employee = result.data;
+        const profilePhotoHtml = employee.profile_photo
+            ? `<div class="text-center mb-3"><img src="${employee.profile_photo}" alt="Profile Photo" class="img-fluid rounded" style="max-width: 200px; height: auto;"></div>`
+            : '<p class="text-muted text-center">No profile photo available</p>';
+
+        const modalContent = `
+            ${profilePhotoHtml}
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h6 class="text-muted">First Name</h6>
+                    <p>${employee.first_name}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted">Last Name</h6>
+                    <p>${employee.last_name}</p>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h6 class="text-muted">Email</h6>
+                    <p>${employee.email}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted">Phone</h6>
+                    <p>${employee.phone}</p>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h6 class="text-muted">Date of Birth</h6>
+                    <p>${employee.date_of_birth}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted">Gender</h6>
+                    <p>${employee.gender}</p>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h6 class="text-muted">Department</h6>
+                    <p>${employee.department}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted">Designation</h6>
+                    <p>${employee.designation}</p>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h6 class="text-muted">Date of Joining</h6>
+                    <p>${employee.date_of_joining}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted">Salary</h6>
+                    <p>${Number(employee.salary).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <h6 class="text-muted">Address</h6>
+                    <p>${employee.address}</p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-muted">Status</h6>
+                    <p><span class="badge ${employee.status === 'active' ? 'bg-success' : 'bg-secondary'}">${employee.status}</span></p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted">Employee ID</h6>
+                    <p>${employee.id}</p>
+                </div>
+            </div>
+        `;
+
+        const modalContent_div = document.getElementById('employeeDetailsContent');
+        if (modalContent_div) {
+            modalContent_div.innerHTML = modalContent;
+        }
+
+        const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
+        modal.show();
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function () {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     if (user && user.name) {
@@ -78,112 +185,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             if (tableBody) {
                 tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">${error.message}</td></tr>`;
             }
-        }
-    }
-
-    async function viewEmployeeInfo(employeeId) {
-        try {
-            const response = await fetch(`/api/employees/${employeeId}`, {
-                method: 'GET',
-                credentials: 'include'
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.message || 'Unable to load employee details.');
-            }
-
-            const employee = result.data;
-            const profilePhotoHtml = employee.profile_photo
-                ? `<div class="text-center mb-3"><img src="${employee.profile_photo}" alt="Profile Photo" class="img-fluid rounded" style="max-width: 200px; height: auto;"></div>`
-                : '<p class="text-muted text-center">No profile photo available</p>';
-
-            const modalContent = `
-                ${profilePhotoHtml}
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <h6 class="text-muted">First Name</h6>
-                        <p>${employee.first_name}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="text-muted">Last Name</h6>
-                        <p>${employee.last_name}</p>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <h6 class="text-muted">Email</h6>
-                        <p>${employee.email}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="text-muted">Phone</h6>
-                        <p>${employee.phone}</p>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <h6 class="text-muted">Date of Birth</h6>
-                        <p>${employee.date_of_birth}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="text-muted">Gender</h6>
-                        <p>${employee.gender}</p>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <h6 class="text-muted">Department</h6>
-                        <p>${employee.department}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="text-muted">Designation</h6>
-                        <p>${employee.designation}</p>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <h6 class="text-muted">Date of Joining</h6>
-                        <p>${employee.date_of_joining}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="text-muted">Salary</h6>
-                        <p>${Number(employee.salary).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-12">
-                        <h6 class="text-muted">Address</h6>
-                        <p>${employee.address}</p>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="text-muted">Status</h6>
-                        <p><span class="badge ${employee.status === 'active' ? 'bg-success' : 'bg-secondary'}">${employee.status}</span></p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="text-muted">Employee ID</h6>
-                        <p>${employee.id}</p>
-                    </div>
-                </div>
-            `;
-
-            const modalContent_div = document.getElementById('employeeDetailsContent');
-            if (modalContent_div) {
-                modalContent_div.innerHTML = modalContent;
-            }
-
-            const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
-            modal.show();
-        } catch (error) {
-            alert('Error: ' + error.message);
         }
     }
 

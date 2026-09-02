@@ -54,16 +54,14 @@ class EmployeeController extends BaseController
         ]);
     }
 
-    public function getEmployeeById(): void
+    public function getEmployeeById(int $employeeId): void
     {
         header('Content-Type: application/json');
 
         AuthMiddleware::requireLogin();
         AuthMiddleware::requireAdmin();
 
-        $id = isset($_GET['id']) ? intval($_GET['id']) : null;
-
-        if ($id === null || $id <= 0) {
+        if ($employeeId <= 0) {
             $this->respond(400, [
                 'success' => false,
                 'message' => 'Invalid employee ID.'
@@ -76,7 +74,7 @@ class EmployeeController extends BaseController
 
         $conn = DBConfig::getConnection();
         $repository = new EmployeeRepository($conn);
-        $employee = $repository->getById($id);
+        $employee = $repository->getById($employeeId);
 
         if (!$employee) {
             $this->respond(404, [

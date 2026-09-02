@@ -8,10 +8,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $uri === 'api/employees') {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && preg_match('/^api\/employees\/\d+$/', $uri)) {
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && preg_match('/^api\/employees\/(\d+)$/', $uri, $matches)) {
     require_once __DIR__ . '/../controllers/EmployeeController.php';
     $controller = new EmployeeController();
-    $controller->getEmployeeById();
+    $employeeId = intval($matches[1]);
+    $controller->getEmployeeById($employeeId);
     exit;
 }
 
