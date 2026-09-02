@@ -91,9 +91,101 @@ class EmployeeRepository extends BaseRepository implements EmployeeRepositoryInt
         return $result ?: null;
     }
 
-    public function getFiltered(?string $search = null, ?string $status = null, ?string $department = null): array
+   public function getFiltered(
+    ?string $search = null,
+    ?string $status = null,
+    ?string $department = null,
+    int $limit = 10,
+    int $offset = 0
+): array {
+    $sql = 'SELECT * FROM employees WHERE 1=1';
+
+    $params = [];
+
+    if ($search !== null && $search !== '') {
+        $sql .= ' AND (
+            first_name LIKE :search_first
+            OR last_name LIKE :search_last
+            OR email LIKE :search_email
+            OR phone LIKE :search_phone
+            OR department LIKE :search_department
+            OR designation LIKE :search_designation
+        )';
+
+        $searchValue = '%' . $search . '%';
+
+        $params[':search_first'] = $searchValue;
+        $params[':search_last'] = $searchValue;
+        $params[':search_email'] = $searchValue;
+        $params[':search_phone'] = $searchValue;
+        $params[':search_department'] = $searchValue;
+        $params[':search_designation'] = $searchValue;
+    }
+
+    if ($status !== null && $status !== '') {
+        $sql .= ' AND status = :status';
+        $params[':status'] = $status;
+    }
+
+    if ($department !== null && $department !== '') {
+        $sql .= ' AND department = :department';
+        $params[':department'] = $department;
+    }
+
+    $sql .= ' ORDER BY created_at DESC
+              LIMIT :limit OFFSET :offset';
+
+    $stmt = $this->getConnection()->prepare($sql);
+
+    foreach ([
+        ':search_first',
+        ':search_last',
+        ':search_email',
+        ':search_phone',
+        ':search_department',
+        ':search_designation'
+    ] as $param) {
+        if (isset($params[$param])) {
+            $stmt->bindValue($param, $params[$param], PDO::PARAM_STR);
+        }
+    }
+
+    if (isset($params[':status'])) {
+        $stmt->bindValue(
+            ':status',
+            $params[':status'],
+            PDO::PARAM_STR
+        );
+    }
+
+    if (isset($params[':department'])) {
+        $stmt->bindValue(
+            ':department',
+            $params[':department'],
+            PDO::PARAM_STR
+        );
+    }
+
+    $stmt->bindValue(
+        ':limit',
+        $limit,
+        PDO::PARAM_INT
+    );
+
+    $stmt->bindValue(
+        ':offset',
+        $offset,
+        PDO::PARAM_INT
+    );
+
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+    public function countFiltered(?string $search = null, ?string $status = null, ?string $department = null): int
     {
-        $sql = 'SELECT * FROM employees WHERE 1=1';
+        $sql = 'SELECT COUNT(*) as total FROM employees WHERE 1=1';
         $params = [];
 
         if ($search !== null && $search !== '') {
@@ -118,12 +210,11 @@ class EmployeeRepository extends BaseRepository implements EmployeeRepositoryInt
             $params[':department'] = $department;
         }
 
-        $sql .= ' ORDER BY created_at DESC';
-
         $stmt = $this->getConnection()->prepare($sql);
         $stmt->execute($params);
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return intval($result['total'] ?? 0);
     }
 
     public function update(int $id, array $data): bool

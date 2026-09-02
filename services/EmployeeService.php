@@ -18,6 +18,14 @@ class EmployeeService
             $search = isset($filters['search']) ? trim((string)$filters['search']) : null;
             $status = isset($filters['status']) ? trim((string)$filters['status']) : null;
             $department = isset($filters['department']) ? trim((string)$filters['department']) : null;
+            $page = isset($filters['page']) ? intval($filters['page']) : 1;
+            $perPage = 10;
+
+            if ($page < 1) {
+                $page = 1;
+            }
+
+            $offset = ($page - 1) * $perPage;
 
             if ($status !== null && $status !== '' && !in_array($status, ['active', 'inactive'], true)) {
                 return [
@@ -47,12 +55,25 @@ class EmployeeService
                 ];
             }
 
+            $totalCount = $employeeRepository->countFiltered($search !== '' ? $search : null, $status !== '' ? $status : null, $department !== '' ? $department : null);
+            $totalPages = ceil($totalCount / $perPage);
+
+            $employees = $employeeRepository->getFiltered($search !== '' ? $search : null, $status !== '' ? $status : null, $department !== '' ? $department : null, $perPage, $offset);
+
             return [
                 'success' => true,
-                'data' => $employeeRepository->getFiltered($search !== '' ? $search : null, $status !== '' ? $status : null, $department !== '' ? $department : null),
+                'data' => $employees,
+                'pagination' => [
+                    'currentPage' => $page,
+                    'perPage' => $perPage,
+                    'totalCount' => $totalCount,
+                    'totalPages' => $totalPages
+                ],
                 'statusCode' => 200
             ];
         } catch (Throwable $e) {
+             error_log($e->getMessage());
+             error_log($e->getTraceAsString());
             return [
                 'success' => false,
                 'message' => 'Failed to fetch employees.',

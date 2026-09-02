@@ -21,7 +21,8 @@ class EmployeeController extends BaseController
         $this->respond($result['statusCode'] ?? 500, [
             'success' => $result['success'],
             'message' => $result['message'] ?? null,
-            'data' => $result['data'] ?? []
+            'data' => $result['data'] ?? [],
+            'pagination' => $result['pagination'] ?? null
         ]);
     }
 
