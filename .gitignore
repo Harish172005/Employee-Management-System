@@ -9,3 +9,5 @@
 
 # Local Apache configuration
 .htaccess
+
+/uploads/

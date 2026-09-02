@@ -125,4 +125,51 @@ class EmployeeRepository extends BaseRepository implements EmployeeRepositoryInt
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function update(int $id, array $data): bool
+    {
+        $allowedFields = [
+            'first_name',
+            'last_name',
+            'email',
+            'phone',
+            'date_of_birth',
+            'gender',
+            'date_of_joining',
+            'department',
+            'designation',
+            'salary',
+            'address',
+            'profile_photo',
+            'status'
+        ];
+
+        $updates = [];
+        $params = [':id' => $id];
+
+        foreach ($allowedFields as $field) {
+            if (array_key_exists($field, $data)) {
+                $updates[] = "$field = :$field";
+                $params[":$field"] = $data[$field];
+            }
+        }
+
+        if (empty($updates)) {
+            return false;
+        }
+
+        $sql = 'UPDATE employees SET ' . implode(', ', $updates) . ' WHERE id = :id';
+
+        $stmt = $this->getConnection()->prepare($sql);
+        return $stmt->execute($params);
+    }
+
+    public function deactivate(int $id): bool
+    {
+        $stmt = $this->getConnection()->prepare(
+            'UPDATE employees SET status = :status WHERE id = :id'
+        );
+
+        return $stmt->execute([':status' => 'inactive', ':id' => $id]);
+    }
 }

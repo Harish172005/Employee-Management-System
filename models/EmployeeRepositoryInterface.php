@@ -23,4 +23,8 @@ interface EmployeeRepositoryInterface
     public function getById(int $id): ?array;
 
     public function getFiltered(?string $search = null, ?string $status = null, ?string $department = null): array;
+
+    public function update(int $id, array $data): bool;
+
+    public function deactivate(int $id): bool;
 }

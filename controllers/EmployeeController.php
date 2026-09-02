@@ -89,4 +89,63 @@ class EmployeeController extends BaseController
             'data' => $employee
         ]);
     }
+
+    public function updateEmployee(int $employeeId): void
+    {
+        header('Content-Type: application/json');
+
+        AuthMiddleware::requireLogin();
+        AuthMiddleware::requireAdmin();
+
+        if ($employeeId <= 0) {
+            $this->respond(400, [
+                'success' => false,
+                'message' => 'Invalid employee ID.'
+            ]);
+            return;
+        }
+
+        $data = $_POST;
+
+        if (empty($data)) {
+            $rawInput = file_get_contents('php://input');
+            $decoded = json_decode($rawInput, true);
+
+            if (is_array($decoded)) {
+                $data = $decoded;
+            }
+        }
+
+        $service = new EmployeeService();
+        $result = $service->updateEmployee($employeeId, $data ?? []);
+
+        $this->respond($result['statusCode'] ?? 500, [
+            'success' => $result['success'],
+            'message' => $result['message']
+        ]);
+    }
+
+    public function deactivateEmployee(int $employeeId): void
+    {
+        header('Content-Type: application/json');
+
+        AuthMiddleware::requireLogin();
+        AuthMiddleware::requireAdmin();
+
+        if ($employeeId <= 0) {
+            $this->respond(400, [
+                'success' => false,
+                'message' => 'Invalid employee ID.'
+            ]);
+            return;
+        }
+
+        $service = new EmployeeService();
+        $result = $service->deactivateEmployee($employeeId);
+
+        $this->respond($result['statusCode'] ?? 500, [
+            'success' => $result['success'],
+            'message' => $result['message']
+        ]);
+    }
 }

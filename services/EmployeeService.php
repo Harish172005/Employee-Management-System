@@ -197,4 +197,220 @@ class EmployeeService
             'statusCode' => 201
         ];
     }
+
+    public function updateEmployee(int $employeeId, array $data): array
+    {
+        try {
+            $conn = DBConfig::getConnection();
+            $employeeRepository = new EmployeeRepository($conn);
+
+            // Check if employee exists
+            $employee = $employeeRepository->getById($employeeId);
+            if (!$employee) {
+                return [
+                    'success' => false,
+                    'message' => 'Employee not found.',
+                    'statusCode' => 404
+                ];
+            }
+
+            $updateData = [];
+
+            // Validate and prepare fields to update
+            if (isset($data['first_name'])) {
+                $firstName = trim((string)$data['first_name']);
+                if ($firstName === '') {
+                    return [
+                        'success' => false,
+                        'message' => 'First name is required.',
+                        'statusCode' => 400
+                    ];
+                }
+                $updateData['first_name'] = $firstName;
+            }
+
+            if (isset($data['last_name'])) {
+                $lastName = trim((string)$data['last_name']);
+                if ($lastName === '') {
+                    return [
+                        'success' => false,
+                        'message' => 'Last name is required.',
+                        'statusCode' => 400
+                    ];
+                }
+                $updateData['last_name'] = $lastName;
+            }
+
+            if (isset($data['email'])) {
+                $email = trim((string)$data['email']);
+                $emailErrors = EmailValidator::validate($email);
+                if (!empty($emailErrors)) {
+                    return [
+                        'success' => false,
+                        'message' => $emailErrors[0],
+                        'statusCode' => 400
+                    ];
+                }
+                $updateData['email'] = $email;
+            }
+
+            if (isset($data['phone'])) {
+                $phone = trim((string)$data['phone']);
+                if ($phone !== '') {
+                    $updateData['phone'] = $phone;
+                }
+            }
+
+            if (isset($data['gender'])) {
+                $gender = trim((string)$data['gender']);
+                if (!in_array($gender, ['Male', 'Female', 'Other'], true)) {
+                    return [
+                        'success' => false,
+                        'message' => 'Gender must be Male, Female, or Other.',
+                        'statusCode' => 400
+                    ];
+                }
+                $updateData['gender'] = $gender;
+            }
+
+            if (isset($data['department'])) {
+                $department = trim((string)$data['department']);
+                $allowedDepartments = [
+                    'IT',
+                    'Finance',
+                    'Marketing',
+                    'Sales',
+                    'Operations',
+                    'Administration',
+                    'Customer Support',
+                    'Research & Development',
+                    'Quality Assurance'
+                ];
+                if (!in_array($department, $allowedDepartments, true)) {
+                    return [
+                        'success' => false,
+                        'message' => 'Department is invalid.',
+                        'statusCode' => 400
+                    ];
+                }
+                $updateData['department'] = $department;
+            }
+
+            if (isset($data['designation'])) {
+                $designation = trim((string)$data['designation']);
+                if ($designation !== '') {
+                    $updateData['designation'] = $designation;
+                }
+            }
+
+            if (isset($data['salary'])) {
+                if (!is_numeric($data['salary'])) {
+                    return [
+                        'success' => false,
+                        'message' => 'Salary must be a valid number.',
+                        'statusCode' => 400
+                    ];
+                }
+                $updateData['salary'] = (float)$data['salary'];
+            }
+
+            if (isset($data['address'])) {
+                $address = trim((string)$data['address']);
+                if ($address !== '') {
+                    $updateData['address'] = $address;
+                }
+            }
+
+            if (isset($data['status'])) {
+                $status = trim((string)$data['status']);
+                if (!in_array($status, ['active', 'inactive'], true)) {
+                    return [
+                        'success' => false,
+                        'message' => 'Status must be active or inactive.',
+                        'statusCode' => 400
+                    ];
+                }
+                $updateData['status'] = $status;
+            }
+
+            if (empty($updateData)) {
+                return [
+                    'success' => false,
+                    'message' => 'No fields to update.',
+                    'statusCode' => 400
+                ];
+            }
+
+            $updated = $employeeRepository->update($employeeId, $updateData);
+
+            if (!$updated) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to update employee.',
+                    'statusCode' => 500
+                ];
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Employee updated successfully.',
+                'statusCode' => 200
+            ];
+        } catch (Throwable $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to update employee.',
+                'statusCode' => 500
+            ];
+        }
+    }
+
+    public function deactivateEmployee(int $employeeId): array
+    {
+        try {
+            $conn = DBConfig::getConnection();
+            $employeeRepository = new EmployeeRepository($conn);
+
+            // Check if employee exists
+            $employee = $employeeRepository->getById($employeeId);
+            if (!$employee) {
+                return [
+                    'success' => false,
+                    'message' => 'Employee not found.',
+                    'statusCode' => 404
+                ];
+            }
+
+            // Check if already inactive
+            if ($employee['status'] === 'inactive') {
+                return [
+                    'success' => false,
+                    'message' => 'Employee is already inactive.',
+                    'statusCode' => 400
+                ];
+            }
+
+            $deactivated = $employeeRepository->deactivate($employeeId);
+
+            if (!$deactivated) {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to deactivate employee.',
+                    'statusCode' => 500
+                ];
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Employee deactivated successfully.',
+                'statusCode' => 200
+            ];
+        } catch (Throwable $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to deactivate employee.',
+                'statusCode' => 500
+            ];
+        }
+    }
 }

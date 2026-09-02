@@ -105,6 +105,71 @@ async function viewEmployeeInfo(employeeId) {
     }
 }
 
+// Global function to edit employee
+async function editEmployee(employeeId) {
+    try {
+        const response = await fetch(`/api/employees/${employeeId}`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Unable to load employee details.');
+        }
+
+        const employee = result.data;
+
+        // Populate the edit form
+        document.getElementById('editEmployeeId').value = employee.id;
+        document.getElementById('editFirstName').value = employee.first_name;
+        document.getElementById('editLastName').value = employee.last_name;
+        document.getElementById('editEmail').value = employee.email;
+        document.getElementById('editPhone').value = employee.phone;
+        document.getElementById('editGender').value = employee.gender;
+        document.getElementById('editDepartment').value = employee.department;
+        document.getElementById('editDesignation').value = employee.designation;
+        document.getElementById('editSalary').value = employee.salary;
+        document.getElementById('editAddress').value = employee.address;
+        document.getElementById('editStatus').value = employee.status;
+
+        const modal = new bootstrap.Modal(document.getElementById('editEmployeeModal'));
+        modal.show();
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// Global function to deactivate employee
+async function deactivateEmployee(employeeId) {
+    if (!confirm('Are you sure you want to deactivate this employee?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/employees/${employeeId}`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Unable to deactivate employee.');
+        }
+
+        alert('Employee deactivated successfully.');
+        // Reload the employee list
+        location.reload();
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function () {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     if (user && user.name) {
@@ -118,7 +183,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     const departmentFilter = document.getElementById('departmentFilter');
     const statusFilter = document.getElementById('statusFilter');
     const searchInput = document.getElementById('employeeSearch');
-    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
 
     async function fetchEmployees() {
         try {
@@ -176,7 +240,13 @@ document.addEventListener('DOMContentLoaded', async function () {
                     <td>${Number(employee.salary).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     <td>
                         <button class="btn btn-sm btn-info text-white" onclick="viewEmployeeInfo(${employee.id})">
-                            View Info
+                            View
+                        </button>
+                        <button class="btn btn-sm btn-warning text-dark" onclick="editEmployee(${employee.id})">
+                            Edit
+                        </button>
+                        ${employee.status === 'active' ? `<button class="btn btn-sm btn-danger" onclick="deactivateEmployee(${employee.id})">Deactivate</button>` : '<span class="badge bg-secondary">Inactive</span>'}
+                    </td>
                         </button>
                     </td>
                 </tr>
@@ -186,10 +256,6 @@ document.addEventListener('DOMContentLoaded', async function () {
                 tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">${error.message}</td></tr>`;
             }
         }
-    }
-
-    if (applyFiltersBtn) {
-        applyFiltersBtn.addEventListener('click', () => fetchEmployees());
     }
 
     if (searchInput) {
@@ -207,6 +273,58 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (departmentFilter) {
         departmentFilter.addEventListener('change', function () {
             fetchEmployees();
+        });
+    }
+
+    // Handle edit form submission
+    const editForm = document.getElementById('editEmployeeForm');
+    if (editForm) {
+        editForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const employeeId = document.getElementById('editEmployeeId').value;
+            const editError = document.getElementById('editError');
+            editError.classList.add('d-none');
+
+            const updateData = {
+                first_name: document.getElementById('editFirstName').value.trim(),
+                last_name: document.getElementById('editLastName').value.trim(),
+                email: document.getElementById('editEmail').value.trim(),
+                phone: document.getElementById('editPhone').value.trim(),
+                gender: document.getElementById('editGender').value,
+                department: document.getElementById('editDepartment').value,
+                designation: document.getElementById('editDesignation').value.trim(),
+                salary: parseFloat(document.getElementById('editSalary').value) || 0,
+                address: document.getElementById('editAddress').value.trim(),
+                status: document.getElementById('editStatus').value
+            };
+
+            try {
+                const response = await fetch(`/api/employees/${employeeId}`, {
+                    method: 'PUT',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    editError.textContent = result.message || 'Failed to update employee.';
+                    editError.classList.remove('d-none');
+                    return;
+                }
+
+                alert('Employee updated successfully.');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editEmployeeModal'));
+                modal.hide();
+                fetchEmployees();
+            } catch (error) {
+                editError.textContent = 'Error: ' + error.message;
+                editError.classList.remove('d-none');
+            }
         });
     }
 
