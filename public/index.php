@@ -23,6 +23,10 @@ if (str_starts_with($uri, 'api/')) {
         require __DIR__ . '/../routes/EmployeeRoutes.php';
     }
 
+    if (str_starts_with($uri, 'api/departments/')) {
+        require __DIR__ . '/../routes/DepartmentRoutes.php';
+    }
+
     exit;
 }
 
@@ -66,6 +70,17 @@ if ($method === 'GET' && $uri === 'admin/add-employee') {
     AuthMiddleware::requireRole(['admin']);
 
     require __DIR__ . '/../views/pages/add-employee.html';
+
+    exit;
+}
+
+if ($method === 'GET' && $uri === 'admin/add-department') {
+
+    require __DIR__ . '/../middlewares/AuthMiddleware.php';
+
+    AuthMiddleware::requireRole(['admin']);
+
+    require __DIR__ . '/../views/pages/add-department.html';
 
     exit;
 }

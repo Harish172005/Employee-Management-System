@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData();
         const photoInput = document.getElementById('profile_photo');
 
-        formData.append('employee_id', document.getElementById('employee_id').value.trim());
         formData.append('first_name', document.getElementById('first_name').value.trim());
         formData.append('last_name', document.getElementById('last_name').value.trim());
         formData.append('email', document.getElementById('email').value.trim());

@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../config/dbConfig.php';
-require_once __DIR__ . '/../models/UserRepository.php';
+require_once __DIR__ . '/../models/EmployeeRepository.php';
 require_once __DIR__ . '/../utilities/EmailValidator.php';
 require_once __DIR__ . '/../utilities/FileValidator.php';
 
@@ -10,7 +10,6 @@ class EmployeeService
     public function createEmployee(array $data): array
     {
         $requiredFields = [
-            'employee_id',
             'first_name',
             'last_name',
             'email',
@@ -87,6 +86,27 @@ class EmployeeService
             ];
         }
 
+        $department = trim((string)$data['department']);
+        $allowedDepartments = [
+            'IT',
+            'Finance',
+            'Marketing',
+            'Sales',
+            'Operations',
+            'Administration',
+            'Customer Support',
+            'Research & Development',
+            'Quality Assurance'
+        ];
+
+        if (!in_array($department, $allowedDepartments, true)) {
+            return [
+                'success' => false,
+                'message' => 'Department is invalid.',
+                'statusCode' => 400
+            ];
+        }
+
         if (!is_numeric($data['salary'])) {
             return [
                 'success' => false,
@@ -96,57 +116,23 @@ class EmployeeService
         }
 
         $conn = DBConfig::getConnection();
+        $employeeRepository = new EmployeeRepository($conn);
 
-        $stmt = $conn->prepare(
-            'INSERT INTO employees (
-                employee_id,
-                first_name,
-                last_name,
-                email,
-                phone,
-                date_of_birth,
-                gender,
-                date_of_joining,
-                department,
-                designation,
-                salary,
-                address,
-                profile_photo,
-                status
-            ) VALUES (
-                :employee_id,
-                :first_name,
-                :last_name,
-                :email,
-                :phone,
-                :date_of_birth,
-                :gender,
-                :date_of_joining,
-                :department,
-                :designation,
-                :salary,
-                :address,
-                :profile_photo,
-                :status
-            )'
+        $saved = $employeeRepository->create(
+            trim((string)$data['first_name']),
+            trim((string)$data['last_name']),
+            trim((string)$data['email']),
+            trim((string)$data['phone']),
+            trim((string)$data['date_of_birth']),
+            $gender,
+            trim((string)$data['date_of_joining']),
+            $department,
+            trim((string)$data['designation']),
+            (float)$data['salary'],
+            trim((string)$data['address']),
+            $uploadedPhotoPath,
+            $status
         );
-
-        $saved = $stmt->execute([
-            ':employee_id' => trim((string)$data['employee_id']),
-            ':first_name' => trim((string)$data['first_name']),
-            ':last_name' => trim((string)$data['last_name']),
-            ':email' => trim((string)$data['email']),
-            ':phone' => trim((string)$data['phone']),
-            ':date_of_birth' => trim((string)$data['date_of_birth']),
-            ':gender' => $gender,
-            ':date_of_joining' => trim((string)$data['date_of_joining']),
-            ':department' => trim((string)$data['department']),
-            ':designation' => trim((string)$data['designation']),
-            ':salary' => (float)$data['salary'],
-            ':address' => trim((string)$data['address']),
-            ':profile_photo' => $uploadedPhotoPath,
-            ':status' => $status
-        ]);
 
         if (!$saved) {
             return [

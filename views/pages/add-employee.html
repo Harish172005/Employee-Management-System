@@ -47,10 +47,6 @@
                         <form id="addEmployeeForm" enctype="multipart/form-data">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="employee_id" class="form-label">Employee ID</label>
-                                    <input type="text" class="form-control" id="employee_id" name="employee_id" required>
-                                </div>
-                                <div class="col-md-6">
                                     <label for="first_name" class="form-label">First Name</label>
                                     <input type="text" class="form-control" id="first_name" name="first_name" required>
                                 </div>
@@ -85,7 +81,18 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label for="department" class="form-label">Department</label>
-                                    <input type="text" class="form-control" id="department" name="department" required>
+                                    <select class="form-select" id="department" name="department" required>
+                                        <option value="">Select department</option>
+                                        <option value="IT">IT</option>
+                                        <option value="Finance">Finance</option>
+                                        <option value="Marketing">Marketing</option>
+                                        <option value="Sales">Sales</option>
+                                        <option value="Operations">Operations</option>
+                                        <option value="Administration">Administration</option>
+                                        <option value="Customer Support">Customer Support</option>
+                                        <option value="Research & Development">Research & Development</option>
+                                        <option value="Quality Assurance">Quality Assurance</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="designation" class="form-label">Designation</label>

@@ -14,7 +14,16 @@ class EmployeeController
         AuthMiddleware::requireLogin();
         AuthMiddleware::requireAdmin();
 
-        $data = json_decode(file_get_contents('php://input'), true);
+        $data = $_POST;
+
+        if (empty($data)) {
+            $rawInput = file_get_contents('php://input');
+            $decoded = json_decode($rawInput, true);
+
+            if (is_array($decoded)) {
+                $data = $decoded;
+            }
+        }
 
         $service = new EmployeeService();
         $result = $service->createEmployee(
