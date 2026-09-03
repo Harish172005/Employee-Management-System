@@ -1,26 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (user && user.name) {
-        const userDisplay = document.getElementById('userDisplay');
-        if (userDisplay) {
-            userDisplay.textContent = `Welcome, ${user.name}`;
-        }
-    }
-
-    async function getCsrfToken() {
-        const response = await fetch('/api/auth/csrf-token', {
-            method: 'GET',
-            credentials: 'include'
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.token) {
-            throw new Error('Unable to initialize secure form.');
-        }
-
-        return data.token;
-    }
+    displayWelcomeUser();
 
     const form = document.getElementById('addEmployeeForm');
     const messageBox = document.getElementById('formMessage');

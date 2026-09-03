@@ -3,21 +3,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const loginForm = document.getElementById('loginForm');
     const errorMessage = document.getElementById('error-message');
 
-    async function getCsrfToken() {
-        const response = await fetch('/api/auth/csrf-token', {
-            method: 'GET',
-            credentials: 'include'
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.token) {
-            throw new Error('Unable to initialize secure form.');
-        }
-
-        return data.token;
-    }
-
     if (loginForm) {
 
         loginForm.addEventListener('submit', async function (e) {

@@ -2,7 +2,7 @@
 
 class AuthMiddleware
 {
-    public static function enforceSessionTimeout(int $timeoutSeconds = 900): void
+    public static function enforceSessionTimeout(int $timeoutSeconds = 5000): void
     {
         if (!isset($_SESSION['user_id'])) {
             return;

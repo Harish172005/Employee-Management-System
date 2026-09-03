@@ -116,9 +116,10 @@ class EmployeeController extends BaseController
                 $data = $decoded;
             }
         }
+        $file = $_FILES['profile-photo'] ?? null;
 
         $service = new EmployeeService();
-        $result = $service->updateEmployee($employeeId, $data ?? []);
+        $result = $service->updateEmployee($employeeId, $data ?? [], $file ?? null);
 
         $this->respond($result['statusCode'] ?? 500, [
             'success' => $result['success'],
