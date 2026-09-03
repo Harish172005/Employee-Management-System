@@ -108,10 +108,6 @@ async function editEmployee(employeeId) {
 }
 
 
-// ============================================================
-// Edit Employee - Submit
-// ============================================================
-
 async function submitEditEmployee(event) {
 
     event.preventDefault();
@@ -128,21 +124,7 @@ async function submitEditEmployee(event) {
 
     editError.classList.add('d-none');
 
-    /*
-     * FormData automatically collects:
-     *
-     * first_name
-     * last_name
-     * email
-     * phone
-     * gender
-     * department
-     * designation
-     * salary
-     * address
-     * status
-     * profile_photo (if selected)
-     */
+    
     const formData = new FormData(form);
 
     try {

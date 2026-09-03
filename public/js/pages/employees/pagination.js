@@ -20,6 +20,11 @@ function nextPage(event) {
 
     event.preventDefault();
 
+    console.log(
+        'NEXT CLICK - BEFORE:',
+        paginationState.currentPage
+    );
+
     if (
         paginationState.currentPage >=
         paginationState.totalPages
@@ -29,8 +34,27 @@ function nextPage(event) {
 
     paginationState.currentPage++;
 
+    console.log(
+        'NEXT CLICK - AFTER:',
+        paginationState.currentPage
+    );
+
     fetchEmployees();
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    document
+        .getElementById('prevBtn')
+        .querySelector('a')
+        .addEventListener('click', previousPage);
+
+    document
+        .getElementById('nextBtn')
+        .querySelector('a')
+        .addEventListener('click', nextPage);
+
+});
 
 
 function updatePaginationControls() {
@@ -39,8 +63,8 @@ function updatePaginationControls() {
         'paginationContainer'
     );
 
-    const pageIndicator = document.getElementById(
-        'pageIndicator'
+    const pageText = document.getElementById(
+        'pageText'
     );
 
     const prevBtn = document.getElementById(
@@ -52,15 +76,13 @@ function updatePaginationControls() {
     );
 
     if (paginationState.totalPages <= 1) {
-
         container.style.display = 'none';
-
         return;
     }
 
     container.style.display = 'block';
 
-    pageIndicator.textContent =
+    pageText.textContent =
         `Page ${paginationState.currentPage} of ${paginationState.totalPages}`;
 
     prevBtn.classList.toggle(
@@ -70,7 +92,6 @@ function updatePaginationControls() {
 
     nextBtn.classList.toggle(
         'disabled',
-        paginationState.currentPage ===
-        paginationState.totalPages
+        paginationState.currentPage === paginationState.totalPages
     );
 }

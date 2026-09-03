@@ -73,7 +73,6 @@ async function fetchEmployees() {
 
         // Update department filter
         updateDepartmentFilter(
-            employees,
             department
         );
 
@@ -190,31 +189,27 @@ async function fetchEmployees() {
 }
 
 
-// ============================================================
-// Department Filter
-// ============================================================
 
-function updateDepartmentFilter(
-    employees,
-    selectedDepartment
-) {
+function updateDepartmentFilter(selectedDepartment = '') {
 
     const departmentFilter = document.getElementById(
         'departmentFilter'
     );
 
     const departments = [
-        ...new Set(
-            employees
-                .map(employee => employee.department)
-                .filter(Boolean)
-        )
+        'IT',
+        'Finance',
+        'Marketing',
+        'Sales',
+        'Operations',
+        'Administration',
+        'Customer Support',
+        'Research & Development',
+        'Quality Assurance'
     ];
 
     departmentFilter.innerHTML = `
-        <option value="">
-            All departments
-        </option>
+        <option value="">All departments</option>
     `;
 
     departments.forEach(department => {
@@ -227,7 +222,5 @@ function updateDepartmentFilter(
         departmentFilter.appendChild(option);
     });
 
-    if (departments.includes(selectedDepartment)) {
-        departmentFilter.value = selectedDepartment;
-    }
+    departmentFilter.value = selectedDepartment;
 }
