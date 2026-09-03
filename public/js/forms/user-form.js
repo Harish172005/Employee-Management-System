@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    displayWelcomeUser();
 
     const form = document.getElementById('addUserForm');
     const messageBox = document.getElementById('formMessage');

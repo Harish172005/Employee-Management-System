@@ -74,7 +74,7 @@ class EmployeeRepository extends BaseRepository implements EmployeeRepositoryInt
         $stmt = $this->getConnection()->query(
             'SELECT *
              FROM employees
-             ORDER BY created_at DESC'
+             ORDER BY id ASC'
         );
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -132,7 +132,7 @@ class EmployeeRepository extends BaseRepository implements EmployeeRepositoryInt
         $params[':department'] = $department;
     }
 
-    $sql .= ' ORDER BY created_at DESC
+    $sql .= ' ORDER BY id ASC
               LIMIT :limit OFFSET :offset';
 
     $stmt = $this->getConnection()->prepare($sql);
