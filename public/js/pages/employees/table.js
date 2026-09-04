@@ -241,6 +241,8 @@ function renderEmployees(employees) {
             'employeeTableBody'
         );
 
+    
+
     if (!tableBody) {
         return;
     }
@@ -265,9 +267,22 @@ function renderEmployees(employees) {
             .map(
                 employee => {
 
+                    console.log(employee.id, employee.status);
+
                     const fullName =
                         `${employee.first_name || ''} ${employee.last_name || ''}`
                             .trim();
+
+                         const deactivateButton = employee.status === 'active'
+                                    ? `
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-danger"
+                                            onclick="deactivateEmployee(${Number(employee.id)})">
+                                            Deactivate
+                                        </button>
+                                    `
+                                    : '';
 
                     return `
                         <tr>
@@ -331,12 +346,7 @@ function renderEmployees(employees) {
                                     Edit
                                 </button>
 
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-danger"
-                                    onclick="deactivateEmployee(${Number(employee.id)})">
-                                    Deactivate
-                                </button>
+                                ${deactivateButton}
                             </td>
 
                         </tr>
