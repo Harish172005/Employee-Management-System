@@ -10,7 +10,7 @@ interface EmployeeRepositoryInterface
         string $dateOfBirth,
         string $gender,
         string $dateOfJoining,
-        string $department,
+        int $departmentId,
         string $designation,
         float $salary,
         string $address,
@@ -22,7 +22,19 @@ interface EmployeeRepositoryInterface
 
     public function getById(int $id): ?array;
 
-    public function getFiltered(?string $search = null, ?string $status = null, ?string $department = null): array;
+    public function getFiltered(
+        ?string $search = null,
+        ?string $status = null,
+        ?int $departmentId = null,
+        int $limit = 10,
+        int $offset = 0
+    ): array;
+
+    public function countFiltered(
+        ?string $search = null,
+        ?string $status = null,
+        ?int $departmentId = null
+    ): int;
 
     public function update(int $id, array $data): bool;
 

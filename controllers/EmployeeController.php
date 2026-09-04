@@ -1,6 +1,4 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../middlewares/AuthMiddleware.php';
@@ -44,14 +42,18 @@ class EmployeeController extends BaseController
             }
         }
 
+        $file = $_FILES['profile_photo'] ?? null;
+
         $service = new EmployeeService();
+
         $result = $service->createEmployee(
-            $data ?? []
+            $data ?? [],
+            $file
         );
 
         $this->respond($result['statusCode'] ?? 500, [
             'success' => $result['success'],
-            'message' => $result['message']
+            'message' => $result['message'] ?? null
         ]);
     }
 
@@ -70,24 +72,14 @@ class EmployeeController extends BaseController
             return;
         }
 
-        require_once __DIR__ . '/../config/dbConfig.php';
-        require_once __DIR__ . '/../models/EmployeeRepository.php';
+        $service = new EmployeeService();
 
-        $conn = DBConfig::getConnection();
-        $repository = new EmployeeRepository($conn);
-        $employee = $repository->getById($employeeId);
+        $result = $service->getEmployeeById($employeeId);
 
-        if (!$employee) {
-            $this->respond(404, [
-                'success' => false,
-                'message' => 'Employee not found.'
-            ]);
-            return;
-        }
-
-        $this->respond(200, [
-            'success' => true,
-            'data' => $employee
+        $this->respond($result['statusCode'] ?? 500, [
+            'success' => $result['success'],
+            'message' => $result['message'] ?? null,
+            'data' => $result['data'] ?? null
         ]);
     }
 
@@ -116,14 +108,20 @@ class EmployeeController extends BaseController
                 $data = $decoded;
             }
         }
-        $file = $_FILES['profile-photo'] ?? null;
+
+        $file = $_FILES['profile_photo'] ?? null;
 
         $service = new EmployeeService();
-        $result = $service->updateEmployee($employeeId, $data ?? [], $file ?? null);
+
+        $result = $service->updateEmployee(
+            $employeeId,
+            $data ?? [],
+            $file
+        );
 
         $this->respond($result['statusCode'] ?? 500, [
             'success' => $result['success'],
-            'message' => $result['message']
+            'message' => $result['message'] ?? null
         ]);
     }
 
@@ -143,11 +141,12 @@ class EmployeeController extends BaseController
         }
 
         $service = new EmployeeService();
+
         $result = $service->deactivateEmployee($employeeId);
 
         $this->respond($result['statusCode'] ?? 500, [
             'success' => $result['success'],
-            'message' => $result['message']
+            'message' => $result['message'] ?? null
         ]);
     }
 }

@@ -1,52 +1,16 @@
-// ============================================================
-// Fetch Employees
-// ============================================================
+async function loadDepartmentFilter(selectedDepartmentId = '') {
 
-async function fetchEmployees() {
+    const departmentFilter =
+        document.getElementById('departmentFilter');
 
-    const tableBody = document.getElementById(
-        'employeesTableBody'
-    );
-
-    const searchInput = document.getElementById(
-        'employeeSearch'
-    );
-
-    const statusFilter = document.getElementById(
-        'statusFilter'
-    );
-
-    const departmentFilter = document.getElementById(
-        'departmentFilter'
-    );
+    if (!departmentFilter) {
+        return;
+    }
 
     try {
 
-        const params = new URLSearchParams();
-
-        const search = searchInput.value.trim();
-        const status = statusFilter.value;
-        const department = departmentFilter.value;
-
-        if (search) {
-            params.set('search', search);
-        }
-
-        if (status) {
-            params.set('status', status);
-        }
-
-        if (department) {
-            params.set('department', department);
-        }
-
-        params.set(
-            'page',
-            paginationState.currentPage
-        );
-
         const response = await fetch(
-            `/api/employees?${params.toString()}`,
+            '/api/departments',
             {
                 method: 'GET',
                 credentials: 'include'
@@ -58,130 +22,211 @@ async function fetchEmployees() {
         if (!response.ok) {
             throw new Error(
                 result.message ||
+                'Unable to load departments.'
+            );
+        }
+
+        const departments =
+            Array.isArray(result.data)
+                ? result.data
+                : [];
+
+        departmentFilter.innerHTML = `
+            <option value="">
+                All Departments
+            </option>
+        `;
+
+        departments
+            .filter(
+                department =>
+                    department.status === 'active'
+            )
+            .forEach(
+                department => {
+
+                    const option =
+                        document.createElement('option');
+
+                    option.value =
+                        department.id;
+
+                    option.textContent =
+                        department.department_name;
+
+                    departmentFilter.appendChild(
+                        option
+                    );
+                }
+            );
+
+        departmentFilter.value =
+            String(selectedDepartmentId);
+
+    } catch (error) {
+
+        console.error(
+            'Unable to load departments:',
+            error
+        );
+
+        departmentFilter.innerHTML = `
+            <option value="">
+                Unable to load departments
+            </option>
+        `;
+    }
+}
+
+
+async function fetchEmployees() {
+
+    const tableBody =
+        document.getElementById(
+            'employeeTableBody'
+        );
+
+    const searchInput =
+        document.getElementById(
+            'employeeSearch'
+        );
+
+    const statusFilter =
+        document.getElementById(
+            'statusFilter'
+        );
+
+    const departmentFilter =
+        document.getElementById(
+            'departmentFilter'
+        );
+
+    if (!tableBody) {
+        return;
+    }
+
+    const params =
+        new URLSearchParams();
+
+    const search =
+        searchInput
+            ? searchInput.value.trim()
+            : '';
+
+    const status =
+        statusFilter
+            ? statusFilter.value
+            : '';
+
+    const departmentId =
+        departmentFilter
+            ? departmentFilter.value
+            : '';
+
+    if (search) {
+        params.set(
+            'search',
+            search
+        );
+    }
+
+    if (status) {
+        params.set(
+            'status',
+            status
+        );
+    }
+
+    if (departmentId) {
+        params.set(
+            'department_id',
+            departmentId
+        );
+    }
+
+    if (
+        paginationState.currentPage > 0
+    ) {
+        params.set(
+            'page',
+            paginationState.currentPage
+        );
+    }
+
+    tableBody.innerHTML = `
+        <tr>
+            <td colspan="10" class="text-center">
+                Loading...
+            </td>
+        </tr>
+    `;
+
+    try {
+
+        const queryString =
+            params.toString();
+
+        const url =
+            queryString
+                ? `/api/employees?${queryString}`
+                : '/api/employees';
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method: 'GET',
+                    credentials: 'include'
+                }
+            );
+
+        const result =
+            await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.message ||
                 'Unable to load employees.'
             );
         }
 
-        const employees = result.data || [];
-        const pagination = result.pagination || {};
+        const employees =
+            Array.isArray(result.data)
+                ? result.data
+                : [];
 
-        paginationState.currentPage =
-            pagination.currentPage || 1;
+        if (result.pagination) {
 
-        paginationState.totalPages =
-            pagination.totalPages || 1;
+            paginationState.currentPage =
+                Number(
+                    result.pagination.currentPage
+                ) || 1;
 
-        // Update department filter
-        updateDepartmentFilter(
-            department
-        );
-
-        // No employees
-        if (!employees.length) {
-
-            tableBody.innerHTML = `
-                <tr>
-                    <td
-                        colspan="9"
-                        class="text-center text-muted">
-                        No employees found.
-                    </td>
-                </tr>
-            `;
-
-            updatePaginationControls();
-
-            return;
+            paginationState.totalPages =
+                Number(
+                    result.pagination.totalPages
+                ) || 1;
         }
 
-        // Display employees
-        tableBody.innerHTML = employees
-            .map(employee => `
-                <tr>
-
-                    <td>${employee.id}</td>
-
-                    <td>
-                        ${employee.first_name}
-                        ${employee.last_name}
-                    </td>
-
-                    <td>${employee.email}</td>
-
-                    <td>${employee.phone || '-'}</td>
-
-                    <td>${employee.department}</td>
-
-                    <td>${employee.designation || '-'}</td>
-
-                    <td>
-                        <span class="badge ${
-                            employee.status === 'active'
-                                ? 'bg-success'
-                                : 'bg-secondary'
-                        }">
-                            ${employee.status}
-                        </span>
-                    </td>
-
-                    <td>
-                        ${Number(
-                            employee.salary || 0
-                        ).toLocaleString(
-                            undefined,
-                            {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            }
-                        )}
-                    </td>
-
-                    <td>
-
-                        <button
-                            class="btn btn-sm btn-info text-white"
-                            onclick="viewEmployeeInfo(${employee.id})">
-                            View
-                        </button>
-
-                        <button
-                            class="btn btn-sm btn-warning text-dark"
-                            onclick="editEmployee(${employee.id})">
-                            Edit
-                        </button>
-
-                        ${
-                            employee.status === 'active'
-                                ? `
-                                    <button
-                                        class="btn btn-sm btn-danger"
-                                        onclick="deactivateEmployee(${employee.id})">
-                                        Deactivate
-                                    </button>
-                                  `
-                                : `
-                                    <span class="badge bg-secondary">
-                                        Inactive
-                                    </span>
-                                  `
-                        }
-
-                    </td>
-
-                </tr>
-            `)
-            .join('');
+        renderEmployees(
+            employees
+        );
 
         updatePaginationControls();
 
     } catch (error) {
 
+        console.error(
+            'Employee loading error:',
+            error
+        );
+
         tableBody.innerHTML = `
             <tr>
                 <td
-                    colspan="9"
+                    colspan="10"
                     class="text-center text-danger">
-                    ${error.message}
+                    ${escapeHtml(error.message)}
                 </td>
             </tr>
         `;
@@ -189,38 +234,140 @@ async function fetchEmployees() {
 }
 
 
+function renderEmployees(employees) {
 
-function updateDepartmentFilter(selectedDepartment = '') {
+    const tableBody =
+        document.getElementById(
+            'employeeTableBody'
+        );
 
-    const departmentFilter = document.getElementById(
-        'departmentFilter'
-    );
+    if (!tableBody) {
+        return;
+    }
 
-    const departments = [
-        'IT',
-        'Finance',
-        'Marketing',
-        'Sales',
-        'Operations',
-        'Administration',
-        'Customer Support',
-        'Research & Development',
-        'Quality Assurance'
-    ];
+    if (employees.length === 0) {
 
-    departmentFilter.innerHTML = `
-        <option value="">All departments</option>
-    `;
+        tableBody.innerHTML = `
+            <tr>
+                <td
+                    colspan="10"
+                    class="text-center text-muted">
+                    No employees found.
+                </td>
+            </tr>
+        `;
 
-    departments.forEach(department => {
+        return;
+    }
 
-        const option = document.createElement('option');
+    tableBody.innerHTML =
+        employees
+            .map(
+                employee => {
 
-        option.value = department;
-        option.textContent = department;
+                    const fullName =
+                        `${employee.first_name || ''} ${employee.last_name || ''}`
+                            .trim();
 
-        departmentFilter.appendChild(option);
-    });
+                    return `
+                        <tr>
 
-    departmentFilter.value = selectedDepartment;
+                            <td>
+                                ${escapeHtml(employee.id)}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(fullName)}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    employee.email || ''
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    employee.phone || ''
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    employee.department || ''
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    employee.designation || ''
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    employee.salary || ''
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    employee.status || ''
+                                )}
+                            </td>
+
+                            <td>
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-primary me-1"
+                                    onclick="viewEmployeeInfo(${Number(employee.id)})">
+                                    View
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-warning me-1"
+                                    onclick="editEmployee(${Number(employee.id)})">
+                                    Edit
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-danger"
+                                    onclick="deactivateEmployee(${Number(employee.id)})">
+                                    Deactivate
+                                </button>
+                            </td>
+
+                        </tr>
+                    `;
+                }
+            )
+            .join('');
+}
+
+
+function escapeHtml(value) {
+
+    return String(value ?? '')
+        .replace(
+            /&/g,
+            '&amp;'
+        )
+        .replace(
+            /</g,
+            '&lt;'
+        )
+        .replace(
+            />/g,
+            '&gt;'
+        )
+        .replace(
+            /"/g,
+            '&quot;'
+        )
+        .replace(
+            /'/g,
+            '&#039;'
+        );
 }

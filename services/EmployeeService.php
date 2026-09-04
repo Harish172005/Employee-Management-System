@@ -1,8 +1,8 @@
-
 <?php
 
 require_once __DIR__ . '/../config/dbConfig.php';
 require_once __DIR__ . '/../models/EmployeeRepository.php';
+require_once __DIR__ . '/../models/DepartmentRepository.php';
 require_once __DIR__ . '/../traits/FieldValidationTrait.php';
 require_once __DIR__ . '/../utilities/EmployeeValidator.php';
 require_once __DIR__ . '/../utilities/FileValidator.php';
@@ -20,47 +20,113 @@ class EmployeeService
     {
         try {
             $conn = DBConfig::getConnection();
-            $employeeRepository = new EmployeeRepository($conn);
 
-            $search = $this->cleanFilter($filters['search'] ?? null);
-            $status = $this->cleanFilter($filters['status'] ?? null);
-            $department = $this->cleanFilter($filters['department'] ?? null);
+            $employeeRepository =
+                new EmployeeRepository($conn);
+
+            $departmentRepository =
+                new DepartmentRepository($conn);
+
+            $search = $this->cleanFilter(
+                $filters['search'] ?? null
+            );
+
+            $status = $this->cleanFilter(
+                $filters['status'] ?? null
+            );
+
+            $departmentId = null;
+
+            if (
+                isset($filters['department_id']) &&
+                $filters['department_id'] !== ''
+            ) {
+                $departmentId =
+                    filter_var(
+                        $filters['department_id'],
+                        FILTER_VALIDATE_INT
+                    );
+
+                if (
+                    $departmentId === false ||
+                    $departmentId <= 0
+                ) {
+                    return $this->error(
+                        'Invalid department filter.',
+                        400
+                    );
+                }
+
+                $departmentId = (int) $departmentId;
+            }
 
             $page = isset($filters['page'])
                 ? max(1, (int) $filters['page'])
                 : 1;
 
-            $offset = ($page - 1) * self::PER_PAGE;
+            $offset =
+                ($page - 1) * self::PER_PAGE;
 
-            $filterError = EmployeeValidator::validateFilters(
-                $status,
-                $department
-            );
+            $filterError =
+                EmployeeValidator::validateFilters(
+                    $status,
+                    $departmentId
+                );
 
             if ($filterError !== null) {
                 return $filterError;
             }
 
-            $totalCount = $employeeRepository->countFiltered(
-                $search,
-                $status,
-                $department
-            );
+            if ($departmentId !== null) {
 
-            $totalPages = (int) ceil(
-                $totalCount / self::PER_PAGE
-            );
+                $department =
+                    $departmentRepository->getById(
+                        $departmentId
+                    );
 
-            $employees = $employeeRepository->getFiltered(
-                $search,
-                $status,
-                $department,
-                self::PER_PAGE,
-                $offset
-            );
+                if (!$department) {
+                    return $this->error(
+                        'Department not found.',
+                        400
+                    );
+                }
+
+                if (
+                    $department['status'] !==
+                    'active'
+                ) {
+                    return $this->error(
+                        'Department is inactive.',
+                        400
+                    );
+                }
+            }
+
+            $totalCount =
+                $employeeRepository->countFiltered(
+                    $search,
+                    $status,
+                    $departmentId
+                );
+
+            $totalPages =
+                (int) ceil(
+                    $totalCount / self::PER_PAGE
+                );
+
+            $employees =
+                $employeeRepository->getFiltered(
+                    $search,
+                    $status,
+                    $departmentId,
+                    self::PER_PAGE,
+                    $offset
+                );
 
             return [
                 'success' => true,
+                'message' =>
+                    'Employees retrieved successfully.',
                 'data' => $employees,
                 'pagination' => [
                     'currentPage' => $page,
@@ -72,6 +138,7 @@ class EmployeeService
             ];
 
         } catch (Throwable $e) {
+
             $this->logException($e);
 
             return $this->error(
@@ -81,9 +148,64 @@ class EmployeeService
         }
     }
 
-    public function createEmployee(array $data): array
-    {
+    public function getEmployeeById(
+        int $employeeId
+    ): array {
+
+        if ($employeeId <= 0) {
+            return $this->error(
+                'Invalid employee ID.',
+                400
+            );
+        }
+
         try {
+
+            $conn =
+                DBConfig::getConnection();
+
+            $employeeRepository =
+                new EmployeeRepository($conn);
+
+            $employee =
+                $employeeRepository->getById(
+                    $employeeId
+                );
+
+            if (!$employee) {
+                return $this->error(
+                    'Employee not found.',
+                    404
+                );
+            }
+
+            return [
+                'success' => true,
+                'message' =>
+                    'Employee retrieved successfully.',
+                'data' => $employee,
+                'statusCode' => 200
+            ];
+
+        } catch (Throwable $e) {
+
+            $this->logException($e);
+
+            return $this->error(
+                'Failed to retrieve employee.',
+                500
+            );
+        }
+    }
+
+    public function createEmployee(
+        array $data
+    ): array {
+
+        $uploadedPhotoPath = null;
+
+        try {
+
             $requiredFields = [
                 'first_name',
                 'last_name',
@@ -92,31 +214,70 @@ class EmployeeService
                 'date_of_birth',
                 'gender',
                 'date_of_joining',
-                'department',
+                'department_id',
                 'designation',
                 'salary',
                 'address',
                 'status'
             ];
 
-            $requiredError = $this->validateRequiredFields(
-                $data,
-                $requiredFields
-            );
+            $requiredError =
+                $this->validateRequiredFields(
+                    $data,
+                    $requiredFields
+                );
 
             if ($requiredError !== null) {
                 return $requiredError;
             }
 
-            $validationError = EmployeeValidator::validateCreate($data);
+            $validationError =
+                EmployeeValidator::validateCreate(
+                    $data
+                );
 
             if ($validationError !== null) {
                 return $validationError;
             }
 
-            $uploadResult = $this->uploadProfilePhoto(
-                $_FILES['profile_photo'] ?? null
-            );
+            $conn =
+                DBConfig::getConnection();
+
+            $departmentRepository =
+                new DepartmentRepository($conn);
+
+            $employeeRepository =
+                new EmployeeRepository($conn);
+
+            $departmentId =
+                (int) $data['department_id'];
+
+            $department =
+                $departmentRepository->getById(
+                    $departmentId
+                );
+
+            if (!$department) {
+                return $this->error(
+                    'Department not found.',
+                    400
+                );
+            }
+
+            if (
+                $department['status'] !==
+                'active'
+            ) {
+                return $this->error(
+                    'Department is inactive.',
+                    400
+                );
+            }
+
+            $uploadResult =
+                $this->uploadProfilePhoto(
+                    $_FILES['profile_photo'] ?? null
+                );
 
             if (
                 is_array($uploadResult) &&
@@ -125,29 +286,51 @@ class EmployeeService
                 return $uploadResult;
             }
 
-            $uploadedPhotoPath = $uploadResult;
+            $uploadedPhotoPath =
+                $uploadResult;
 
-            $conn = DBConfig::getConnection();
-            $employeeRepository = new EmployeeRepository($conn);
-
-            $saved = $employeeRepository->create(
-                trim((string) $data['first_name']),
-                trim((string) $data['last_name']),
-                trim((string) $data['email']),
-                trim((string) $data['phone']),
-                trim((string) $data['date_of_birth']),
-                trim((string) $data['gender']),
-                trim((string) $data['date_of_joining']),
-                trim((string) $data['department']),
-                trim((string) $data['designation']),
-                (float) $data['salary'],
-                trim((string) $data['address']),
-                $uploadedPhotoPath,
-                trim((string) $data['status'])
-            );
+            $saved =
+                $employeeRepository->create(
+                    trim(
+                        (string) $data['first_name']
+                    ),
+                    trim(
+                        (string) $data['last_name']
+                    ),
+                    trim(
+                        (string) $data['email']
+                    ),
+                    trim(
+                        (string) $data['phone']
+                    ),
+                    trim(
+                        (string) $data['date_of_birth']
+                    ),
+                    trim(
+                        (string) $data['gender']
+                    ),
+                    trim(
+                        (string) $data['date_of_joining']
+                    ),
+                    $departmentId,
+                    trim(
+                        (string) $data['designation']
+                    ),
+                    (float) $data['salary'],
+                    trim(
+                        (string) $data['address']
+                    ),
+                    $uploadedPhotoPath,
+                    trim(
+                        (string) $data['status']
+                    )
+                );
 
             if (!$saved) {
-                $this->deletePhoto($uploadedPhotoPath);
+
+                $this->deletePhoto(
+                    $uploadedPhotoPath
+                );
 
                 return $this->error(
                     'Failed to create employee.',
@@ -157,13 +340,17 @@ class EmployeeService
 
             return [
                 'success' => true,
-                'message' => 'Employee created successfully.',
+                'message' =>
+                    'Employee created successfully.',
                 'statusCode' => 201
             ];
 
         } catch (Throwable $e) {
-            if (isset($uploadedPhotoPath)) {
-                $this->deletePhoto($uploadedPhotoPath);
+
+            if ($uploadedPhotoPath !== null) {
+                $this->deletePhoto(
+                    $uploadedPhotoPath
+                );
             }
 
             $this->logException($e);
@@ -180,11 +367,28 @@ class EmployeeService
         array $data,
         ?array $file = null
     ): array {
-        try {
-            $conn = DBConfig::getConnection();
-            $employeeRepository = new EmployeeRepository($conn);
 
-            $employee = $employeeRepository->getById($employeeId);
+        $uploadedPhotoPath = null;
+
+        try {
+
+            if ($employeeId <= 0) {
+                return $this->error(
+                    'Invalid employee ID.',
+                    400
+                );
+            }
+
+            $conn =
+                DBConfig::getConnection();
+
+            $employeeRepository =
+                new EmployeeRepository($conn);
+
+            $employee =
+                $employeeRepository->getById(
+                    $employeeId
+                );
 
             if (!$employee) {
                 return $this->error(
@@ -193,7 +397,10 @@ class EmployeeService
                 );
             }
 
-            $validationError = EmployeeValidator::validateUpdate($data);
+            $validationError =
+                EmployeeValidator::validateUpdate(
+                    $data
+                );
 
             if ($validationError !== null) {
                 return $validationError;
@@ -201,8 +408,17 @@ class EmployeeService
 
             $updateData = [];
 
-            if (array_key_exists('first_name', $data)) {
-                $firstName = trim((string) $data['first_name']);
+            if (
+                array_key_exists(
+                    'first_name',
+                    $data
+                )
+            ) {
+
+                $firstName =
+                    trim(
+                        (string) $data['first_name']
+                    );
 
                 if ($firstName === '') {
                     return $this->error(
@@ -211,11 +427,21 @@ class EmployeeService
                     );
                 }
 
-                $updateData['first_name'] = $firstName;
+                $updateData['first_name'] =
+                    $firstName;
             }
 
-            if (array_key_exists('last_name', $data)) {
-                $lastName = trim((string) $data['last_name']);
+            if (
+                array_key_exists(
+                    'last_name',
+                    $data
+                )
+            ) {
+
+                $lastName =
+                    trim(
+                        (string) $data['last_name']
+                    );
 
                 if ($lastName === '') {
                     return $this->error(
@@ -224,73 +450,195 @@ class EmployeeService
                     );
                 }
 
-                $updateData['last_name'] = $lastName;
+                $updateData['last_name'] =
+                    $lastName;
             }
 
-            if (array_key_exists('email', $data)) {
-                $updateData['email'] = trim(
-                    (string) $data['email']
-                );
+            if (
+                array_key_exists(
+                    'email',
+                    $data
+                )
+            ) {
+
+                $updateData['email'] =
+                    trim(
+                        (string) $data['email']
+                    );
             }
 
-            if (array_key_exists('phone', $data)) {
-                $phone = trim((string) $data['phone']);
+            if (
+                array_key_exists(
+                    'phone',
+                    $data
+                )
+            ) {
+
+                $phone =
+                    trim(
+                        (string) $data['phone']
+                    );
 
                 if ($phone !== '') {
-                    $updateData['phone'] = $phone;
+                    $updateData['phone'] =
+                        $phone;
                 }
             }
 
-            if (array_key_exists('gender', $data)) {
-                $updateData['gender'] = trim(
-                    (string) $data['gender']
-                );
+            if (
+                array_key_exists(
+                    'date_of_birth',
+                    $data
+                )
+            ) {
+
+                $updateData['date_of_birth'] =
+                    trim(
+                        (string) $data['date_of_birth']
+                    );
             }
 
-            if (array_key_exists('department', $data)) {
-                $updateData['department'] = trim(
-                    (string) $data['department']
-                );
+            if (
+                array_key_exists(
+                    'gender',
+                    $data
+                )
+            ) {
+
+                $updateData['gender'] =
+                    trim(
+                        (string) $data['gender']
+                    );
             }
 
-            if (array_key_exists('designation', $data)) {
-                $designation = trim(
-                    (string) $data['designation']
-                );
+            if (
+                array_key_exists(
+                    'date_of_joining',
+                    $data
+                )
+            ) {
+
+                $updateData['date_of_joining'] =
+                    trim(
+                        (string) $data['date_of_joining']
+                    );
+            }
+
+            if (
+                array_key_exists(
+                    'department_id',
+                    $data
+                )
+            ) {
+
+                $departmentId =
+                    (int) $data['department_id'];
+
+                $departmentRepository =
+                    new DepartmentRepository(
+                        $conn
+                    );
+
+                $department =
+                    $departmentRepository->getById(
+                        $departmentId
+                    );
+
+                if (!$department) {
+                    return $this->error(
+                        'Department not found.',
+                        400
+                    );
+                }
+
+                if (
+                    $department['status'] !==
+                    'active'
+                ) {
+                    return $this->error(
+                        'Department is inactive.',
+                        400
+                    );
+                }
+
+                $updateData['department_id'] =
+                    $departmentId;
+            }
+
+            if (
+                array_key_exists(
+                    'designation',
+                    $data
+                )
+            ) {
+
+                $designation =
+                    trim(
+                        (string) $data['designation']
+                    );
 
                 if ($designation !== '') {
-                    $updateData['designation'] = $designation;
+                    $updateData['designation'] =
+                        $designation;
                 }
             }
 
-            if (array_key_exists('salary', $data)) {
-                $updateData['salary'] = (float) $data['salary'];
+            if (
+                array_key_exists(
+                    'salary',
+                    $data
+                )
+            ) {
+
+                $updateData['salary'] =
+                    (float) $data['salary'];
             }
 
-            if (array_key_exists('address', $data)) {
-                $address = trim(
-                    (string) $data['address']
-                );
+            if (
+                array_key_exists(
+                    'address',
+                    $data
+                )
+            ) {
+
+                $address =
+                    trim(
+                        (string) $data['address']
+                    );
 
                 if ($address !== '') {
-                    $updateData['address'] = $address;
+                    $updateData['address'] =
+                        $address;
                 }
             }
 
-            if (array_key_exists('status', $data)) {
-                $updateData['status'] = trim(
-                    (string) $data['status']
-                );
+            if (
+                array_key_exists(
+                    'status',
+                    $data
+                )
+            ) {
+
+                $updateData['status'] =
+                    trim(
+                        (string) $data['status']
+                    );
             }
 
-            $oldPhoto = $employee['profile_photo'] ?? null;
-            $uploadedPhotoPath = null;
+            $oldPhoto =
+                $employee['profile_photo'] ??
+                null;
 
             if (
                 $file !== null &&
-                $file['error'] !== UPLOAD_ERR_NO_FILE
+                $file['error'] !==
+                UPLOAD_ERR_NO_FILE
             ) {
-                $uploadResult = $this->uploadProfilePhoto($file);
+
+                $uploadResult =
+                    $this->uploadProfilePhoto(
+                        $file
+                    );
 
                 if (
                     is_array($uploadResult) &&
@@ -299,8 +647,11 @@ class EmployeeService
                     return $uploadResult;
                 }
 
-                $uploadedPhotoPath = $uploadResult;
-                $updateData['profile_photo'] = $uploadedPhotoPath;
+                $uploadedPhotoPath =
+                    $uploadResult;
+
+                $updateData['profile_photo'] =
+                    $uploadedPhotoPath;
             }
 
             if (empty($updateData)) {
@@ -310,13 +661,17 @@ class EmployeeService
                 );
             }
 
-            $updated = $employeeRepository->update(
-                $employeeId,
-                $updateData
-            );
+            $updated =
+                $employeeRepository->update(
+                    $employeeId,
+                    $updateData
+                );
 
             if (!$updated) {
-                $this->deletePhoto($uploadedPhotoPath);
+
+                $this->deletePhoto(
+                    $uploadedPhotoPath
+                );
 
                 return $this->error(
                     'Failed to update employee.',
@@ -325,18 +680,24 @@ class EmployeeService
             }
 
             if ($uploadedPhotoPath !== null) {
-                $this->deletePhoto($oldPhoto);
+                $this->deletePhoto(
+                    $oldPhoto
+                );
             }
 
             return [
                 'success' => true,
-                'message' => 'Employee updated successfully.',
+                'message' =>
+                    'Employee updated successfully.',
                 'statusCode' => 200
             ];
 
         } catch (Throwable $e) {
-            if (isset($uploadedPhotoPath)) {
-                $this->deletePhoto($uploadedPhotoPath);
+
+            if ($uploadedPhotoPath !== null) {
+                $this->deletePhoto(
+                    $uploadedPhotoPath
+                );
             }
 
             $this->logException($e);
@@ -351,11 +712,26 @@ class EmployeeService
     public function deactivateEmployee(
         int $employeeId
     ): array {
-        try {
-            $conn = DBConfig::getConnection();
-            $employeeRepository = new EmployeeRepository($conn);
 
-            $employee = $employeeRepository->getById($employeeId);
+        try {
+
+            if ($employeeId <= 0) {
+                return $this->error(
+                    'Invalid employee ID.',
+                    400
+                );
+            }
+
+            $conn =
+                DBConfig::getConnection();
+
+            $employeeRepository =
+                new EmployeeRepository($conn);
+
+            $employee =
+                $employeeRepository->getById(
+                    $employeeId
+                );
 
             if (!$employee) {
                 return $this->error(
@@ -364,16 +740,20 @@ class EmployeeService
                 );
             }
 
-            if ($employee['status'] === 'inactive') {
+            if (
+                $employee['status'] ===
+                'inactive'
+            ) {
                 return $this->error(
                     'Employee is already inactive.',
                     400
                 );
             }
 
-            $deactivated = $employeeRepository->deactivate(
-                $employeeId
-            );
+            $deactivated =
+                $employeeRepository->deactivate(
+                    $employeeId
+                );
 
             if (!$deactivated) {
                 return $this->error(
@@ -384,11 +764,13 @@ class EmployeeService
 
             return [
                 'success' => true,
-                'message' => 'Employee deactivated successfully.',
+                'message' =>
+                    'Employee deactivated successfully.',
                 'statusCode' => 200
             ];
 
         } catch (Throwable $e) {
+
             $this->logException($e);
 
             return $this->error(
@@ -401,14 +783,19 @@ class EmployeeService
     private function uploadProfilePhoto(
         ?array $file
     ): string|array|null {
+
         if (
             $file === null ||
-            $file['error'] === UPLOAD_ERR_NO_FILE
+            $file['error'] ===
+            UPLOAD_ERR_NO_FILE
         ) {
             return null;
         }
 
-        $fileErrors = FileValidator::validate($file);
+        $fileErrors =
+            FileValidator::validate(
+                $file
+            );
 
         if (!empty($fileErrors)) {
             return $this->error(
@@ -417,10 +804,11 @@ class EmployeeService
             );
         }
 
-        $uploadedPath = FileValidator::moveUploadedFile(
-            $file,
-            self::UPLOAD_DIR
-        );
+        $uploadedPath =
+            FileValidator::moveUploadedFile(
+                $file,
+                self::UPLOAD_DIR
+            );
 
         if ($uploadedPath === null) {
             return $this->error(
@@ -435,11 +823,14 @@ class EmployeeService
     private function deletePhoto(
         ?string $photoPath
     ): void {
+
         if (empty($photoPath)) {
             return;
         }
 
-        $fullPath = __DIR__ . '/../public/' . $photoPath;
+        $fullPath =
+            __DIR__ . '/../public/' .
+            $photoPath;
 
         if (file_exists($fullPath)) {
             unlink($fullPath);
@@ -449,19 +840,26 @@ class EmployeeService
     private function cleanFilter(
         mixed $value
     ): ?string {
+
         if ($value === null) {
             return null;
         }
 
-        $value = trim((string) $value);
+        $value =
+            trim(
+                (string) $value
+            );
 
-        return $value === '' ? null : $value;
+        return $value === ''
+            ? null
+            : $value;
     }
 
     private function error(
         string $message,
         int $statusCode
     ): array {
+
         return [
             'success' => false,
             'message' => $message,
@@ -472,8 +870,13 @@ class EmployeeService
     private function logException(
         Throwable $e
     ): void {
-        error_log($e->getMessage());
-        error_log($e->getTraceAsString());
+
+        error_log(
+            $e->getMessage()
+        );
+
+        error_log(
+            $e->getTraceAsString()
+        );
     }
 }
-

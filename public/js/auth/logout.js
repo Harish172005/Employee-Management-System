@@ -1,3 +1,4 @@
+
 async function logout() {
     try {
         const csrfToken = await getCsrfToken();

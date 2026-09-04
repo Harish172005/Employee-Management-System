@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && preg_match('/^api\/employees\/(\d+)$
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && preg_match('/^api\/employees\/(\d+)$/', $uri, $matches)) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && preg_match('/^api\/employees\/(\d+)\/update$/', $uri, $matches)) {
     require_once __DIR__ . '/../controllers/EmployeeController.php';
     $controller = new EmployeeController();
     $employeeId = intval($matches[1]);

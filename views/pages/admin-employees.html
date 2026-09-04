@@ -83,7 +83,7 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="employeesTableBody">
+                        <tbody id="employeeTableBody">
                             <tr>
                                 <td colspan="9" class="text-center text-muted">Loading employees...</td>
                             </tr>
@@ -326,6 +326,26 @@
                                 name="designation">
                         </div>
 
+                        <div class="mb-3">
+                        <label for="editDateOfBirth" class="form-label">Date of Birth</label>
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="editDateOfBirth"
+                            name="date_of_birth"
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editDateOfJoining" class="form-label">Date of Joining</label>
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="editDateOfJoining"
+                            name="date_of_joining"
+                        >
+                    </div>
+
                         <div class="col-md-6">
                             <label
                                 for="editSalary"
@@ -393,7 +413,9 @@
                         id="editError"
                         class="alert alert-danger d-none"
                         role="alert">
-                    </div>
+                    </div> 
+                    
+                    <div id="formMessage" class="alert d-none mt-4" role="alert"></div>
 
                     <div class="modal-footer">
 
@@ -429,5 +451,6 @@
     <script src="/js/pages/employees/deactivate.js"></script>
     <script src="/js/pages/employees/init.js"></script>
     <script src="/js/shared/csrf.js"></script>
+    <script src="/js/auth/logout.js"></script>
 </body>
 </html>
