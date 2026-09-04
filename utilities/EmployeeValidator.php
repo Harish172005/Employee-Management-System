@@ -25,6 +25,14 @@ class EmployeeValidator
             return $emailError;
         }
 
+        $phoneError = self::validatePhone(
+                $data['phone'] ?? null
+            );
+
+            if ($phoneError !== null) {
+                return $phoneError;
+        }
+
         $genderError = self::validateGender(
             $data['gender'] ?? null
         );
@@ -194,6 +202,21 @@ class EmployeeValidator
 
         return null;
     }
+
+    private static function validatePhone(mixed $phone): ?array
+   {
+    $phone = trim((string) $phone);
+
+    if (!preg_match('/^[6-9][0-9]{9}$/', $phone)) {
+        return [
+            'success' => false,
+            'message' => 'Phone number must be a valid 10-digit mobile number.',
+            'statusCode' => 400
+        ];
+    }
+
+    return null;
+   }
 
     private static function validateGender(
         mixed $gender
