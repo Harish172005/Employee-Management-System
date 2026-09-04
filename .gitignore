@@ -8,4 +8,5 @@
 /database/
 
 # Local Apache configuration
-.htaccess
+
+/public/uploads/profile-photos/

@@ -14,37 +14,32 @@ document.addEventListener('DOMContentLoaded', function () {
     const message =
         document.getElementById('message');
 
-
     form.addEventListener('submit', async function (event) {
 
         event.preventDefault();
 
         message.classList.add('d-none');
 
-
-        // Check new passwords match
         if (newPassword.value !== confirmPassword.value) {
-
             showMessage(
                 'New passwords do not match.',
                 'danger'
             );
-
             return;
         }
 
-
         try {
+            const csrfToken = await getCsrfToken();
 
             const response = await fetch(
                 '/api/auth/change-password',
                 {
                     method: 'POST',
-
+                    credentials: 'include',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
                     },
-
                     body: JSON.stringify({
                         currentPassword:
                             currentPassword.value,
@@ -55,30 +50,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             );
 
-
             const data = await response.json();
 
-
             if (response.ok && data.success) {
-
                 showMessage(
                     data.message,
                     'success'
                 );
 
                 form.reset();
-
             } else {
-
                 showMessage(
                     data.message || 'Failed to change password.',
                     'danger'
                 );
             }
 
-
         } catch (error) {
-
             console.error(error);
 
             showMessage(
@@ -89,14 +77,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     });
 
-
     function showMessage(text, type) {
-
         message.textContent = text;
-
-        message.className =
-            `alert alert-${type}`;
-
+        message.className = `alert alert-${type}`;
     }
 
 });
