@@ -274,6 +274,13 @@ class EmployeeService
                 );
             }
 
+                if ($employeeRepository->findByEmail($email)) {
+                    return $this->error(
+                        'Email already exists.',
+                        409
+                    );
+                }
+
             $uploadResult =
                 $this->uploadProfilePhoto(
                     $_FILES['profile_photo'] ?? null

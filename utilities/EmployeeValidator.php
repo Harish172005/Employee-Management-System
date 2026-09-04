@@ -92,6 +92,17 @@ class EmployeeValidator
             }
         }
 
+        if (array_key_exists('phone', $data)) {
+
+            $phoneError = self::validatePhone(
+                $data['phone']
+            );
+
+            if ($phoneError !== null) {
+                return $phoneError;
+            }
+        }
+
         if (array_key_exists('status', $data)) {
 
             $statusError = self::validateStatus(
