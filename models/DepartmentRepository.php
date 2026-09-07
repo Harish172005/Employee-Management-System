@@ -1,19 +1,13 @@
 <?php
 
+require_once __DIR__ . '/BaseRepository.php';
 require_once __DIR__ . '/DepartmentRepositoryInterface.php';
 
-class DepartmentRepository implements DepartmentRepositoryInterface
+class DepartmentRepository extends BaseRepository implements DepartmentRepositoryInterface
 {
-    private PDO $conn;
-
-    public function __construct(PDO $conn)
-    {
-        $this->conn = $conn;
-    }
-
     public function findByName(string $departmentName): ?array
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->getConnection()->prepare(
             'SELECT id, department_name, description, status
              FROM departments
              WHERE department_name = :department_name
@@ -31,7 +25,7 @@ class DepartmentRepository implements DepartmentRepositoryInterface
 
     public function getAll(): array
     {
-        $stmt = $this->conn->query(
+        $stmt = $this->getConnection()->query(
             'SELECT id, department_name, description, status
              FROM departments
              ORDER BY id ASC'
@@ -72,7 +66,7 @@ class DepartmentRepository implements DepartmentRepositoryInterface
 
     $sql .= ' ORDER BY id ASC';
 
-    $stmt = $this->conn->prepare($sql);
+    $stmt = $this->getConnection()->prepare($sql);
     $stmt->execute($params);
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -80,7 +74,7 @@ class DepartmentRepository implements DepartmentRepositoryInterface
 
     public function getById(int $id): ?array
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->getConnection()->prepare(
             'SELECT id, department_name, description, status
              FROM departments
              WHERE id = :id
@@ -101,7 +95,7 @@ class DepartmentRepository implements DepartmentRepositoryInterface
         ?string $description,
         string $status
     ): bool {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->getConnection()->prepare(
             'INSERT INTO departments (
                 department_name,
                 description,
@@ -148,14 +142,14 @@ class DepartmentRepository implements DepartmentRepositoryInterface
             . implode(', ', $updates)
             . ' WHERE id = :id';
 
-        $stmt = $this->conn->prepare($sql);
+        $stmt = $this->getConnection()->prepare($sql);
 
         return $stmt->execute($params);
     }
 
     public function deactivate(int $id): bool
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->getConnection()->prepare(
             'UPDATE departments
              SET status = :status
              WHERE id = :id'

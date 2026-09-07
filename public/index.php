@@ -27,6 +27,10 @@ if (str_starts_with($uri, 'api/')) {
         require __DIR__ . '/../routes/DepartmentRoutes.php';
     }
 
+    if ($uri === 'api/dashboard') {
+        require __DIR__ . '/../routes/DashboardRoutes.php';
+    }
+
     exit;
 }
 
