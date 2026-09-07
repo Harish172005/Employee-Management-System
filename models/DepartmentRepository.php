@@ -1,6 +1,8 @@
 <?php
 
-class DepartmentRepository
+require_once __DIR__ . '/DepartmentRepositoryInterface.php';
+
+class DepartmentRepository implements DepartmentRepositoryInterface
 {
     private PDO $conn;
 
