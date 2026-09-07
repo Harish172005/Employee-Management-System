@@ -104,4 +104,28 @@ public function getDepartmentById($id) : void {
     );
 
 }
+
+public function deactivateDepartment(int $departmentId): void
+{
+    header('Content-Type: application/json');
+
+    AuthMiddleware::requireLogin();
+    AuthMiddleware::requireAdmin();
+
+    if ($departmentId <= 0) {
+        $this->respond(400, [
+            'success' => false,
+            'message' => 'Invalid department ID.'
+        ]);
+        return;
+    }
+
+    $service = new DepartmentService();
+    $result = $service->deactivateDepartment($departmentId);
+
+    $this->respond($result['statusCode'] ?? 500, [
+        'success' => $result['success'],
+        'message' => $result['message'] ?? null
+    ]);
+}
 }

@@ -180,7 +180,7 @@ public function updateDepartment(int $id, array $data): array
     ) {
         return [
             'success' => false,
-            'message' => 'Department already exists.',
+            'message' => 'Department name already exists.',
             'statusCode' => 409
         ];
     }
@@ -240,4 +240,102 @@ public function updateDepartment(int $id, array $data): array
         'statusCode' => 200
     ];
 }
+
+public function deactivateDepartment(
+        int $departmentId
+    ): array {
+
+        try {
+
+            if ($departmentId <= 0) {
+                return $this->error(
+                    'Invalid department ID.',
+                    400
+                );
+            }
+
+            $conn =
+                DBConfig::getConnection();
+
+            $departmentRepository =
+                new DepartmentRepository($conn);
+
+            $department =
+                $departmentRepository->getById(
+                    $departmentId
+                );
+
+            if (!$department) {
+                return $this->error(
+                    'Department not found.',
+                    404
+                );
+            }
+
+            if (
+                $department['status'] ===
+                'inactive'
+            ) {
+                return $this->error(
+                    'Department is already inactive.',
+                    400
+                );
+            }
+
+            $deactivated =
+                $departmentRepository->deactivate(
+                    $departmentId
+                );
+
+            if (!$deactivated) {
+                return $this->error(
+                    'Failed to deactivate department.',
+                    500
+                );
+            }
+
+            return [
+                'success' => true,
+                'message' =>
+                    'Department deactivated successfully.',
+                'statusCode' => 200
+            ];
+
+        } catch (Throwable $e) {
+
+            $this->logException($e);
+
+            return $this->error(
+                'Failed to deactivate department.',
+                500
+            );
+        }
+    }
+
+     private function error(
+        string $message,
+        int $statusCode
+    ): array {
+
+        return [
+            'success' => false,
+            'message' => $message,
+            'statusCode' => $statusCode
+        ];
+    }
+
+    private function logException(
+        Throwable $e
+    ): void {
+
+        error_log(
+            $e->getMessage()
+        );
+
+        error_log(
+            $e->getTraceAsString()
+        );
+    }
 }
+
+

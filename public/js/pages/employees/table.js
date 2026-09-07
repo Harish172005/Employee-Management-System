@@ -1,67 +1,9 @@
 async function loadDepartmentFilter(selectedDepartmentId = '') {
-
-    const departmentFilter =
-        document.getElementById('departmentFilter');
-
-    if (!departmentFilter) {
-        return;
-    }
-
     try {
-
-        const response = await fetch(
-            '/api/departments',
-            {
-                method: 'GET',
-                credentials: 'include'
-            }
-        );
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(
-                result.message ||
-                'Unable to load departments.'
-            );
-        }
-
-        const departments =
-            Array.isArray(result.data)
-                ? result.data
-                : [];
-
-        departmentFilter.innerHTML = `
-            <option value="">
-                All Departments
-            </option>
-        `;
-
-        departments
-            .filter(
-                department =>
-                    department.status === 'active'
-            )
-            .forEach(
-                department => {
-
-                    const option =
-                        document.createElement('option');
-
-                    option.value =
-                        department.id;
-
-                    option.textContent =
-                        department.department_name;
-
-                    departmentFilter.appendChild(
-                        option
-                    );
-                }
-            );
-
-        departmentFilter.value =
-            String(selectedDepartmentId);
+        await loadActiveDepartments('departmentFilter', {
+            placeholder: 'All Departments',
+            selectedId: selectedDepartmentId
+        });
 
     } catch (error) {
 
@@ -70,11 +12,6 @@ async function loadDepartmentFilter(selectedDepartmentId = '') {
             error
         );
 
-        departmentFilter.innerHTML = `
-            <option value="">
-                Unable to load departments
-            </option>
-        `;
     }
 }
 
@@ -266,8 +203,6 @@ function renderEmployees(employees) {
         employees
             .map(
                 employee => {
-
-                    console.log(employee.id, employee.status);
 
                     const fullName =
                         `${employee.first_name || ''} ${employee.last_name || ''}`
