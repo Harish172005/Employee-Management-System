@@ -37,19 +37,71 @@ class DepartmentController extends BaseController
         ]);
     }
     public function getDepartments(): void
-{
+    {
     header('Content-Type: application/json');
 
     AuthMiddleware::requireLogin();
     AuthMiddleware::requireAdmin();
 
-    $service = new DepartmentService();
-    $result = $service->getDepartments();
+    $search = $_GET['search'] ?? null;
+    $status = $_GET['status'] ?? null;
+
+        $service = new DepartmentService();
+
+        $result = $service->getDepartments(
+            $search,
+            $status
+        );
 
     $this->respond($result['statusCode'] ?? 500, [
         'success' => $result['success'],
         'message' => $result['message'] ?? null,
         'data' => $result['data'] ?? []
     ]);
+  }
+ 
+  public function updateDepartment(int $id): void
+{
+    header('Content-Type: application/json');
+
+    AuthMiddleware::requireLogin();
+    AuthMiddleware::requireAdmin();
+
+    $data = json_decode(
+        file_get_contents('php://input'),
+        true
+    );
+
+    $service = new DepartmentService();
+
+    $result = $service->updateDepartment($id, $data);
+
+    $this->respond(
+        $result['statusCode'] ?? 500,
+        [
+            'success' => $result['success'],
+            'message' => $result['message'] ?? null
+        ]
+    );
+}
+
+public function getDepartmentById($id) : void {
+    header('Content-Type: application/json');
+
+    AuthMiddleware::requireLogin();
+    AuthMiddleware::requireAdmin();
+
+     $service = new DepartmentService();
+
+    $result = $service->getDepartmentById($id);
+    $this->respond(
+        $result['statusCode'] ?? 500,
+        [
+            'success' => $result['success'],
+            'message' => $result['message'] ?? null,
+            'data' => $result['data'] ?? null
+        ]
+    );
+
 }
 }

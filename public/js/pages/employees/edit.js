@@ -385,12 +385,13 @@ async function submitEditEmployee(event) {
                 'Unable to update employee.'
             );
         }
-          messageBox.className =
-                'alert alert-success mt-4';
 
-            messageBox.textContent =
-                data.message ||
-                'Employee updated successfully.';
+             errorBox.className =
+            'alert alert-success';
+
+        errorBox.textContent =
+            result.message ||
+            'Employee updated successfully.';
 
         const modalElement =
             document.getElementById(

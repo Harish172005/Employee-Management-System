@@ -273,6 +273,7 @@ class EmployeeService
                     400
                 );
             }
+            $email = trim((string)$data['email']);
 
                 if ($employeeRepository->findByEmail($email)) {
                     return $this->error(

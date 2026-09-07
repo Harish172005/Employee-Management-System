@@ -38,6 +38,44 @@ class DepartmentRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getFiltered(
+    ?string $search,
+    ?string $status
+): array {
+    $sql = '
+        SELECT id, department_name, description, status
+        FROM departments
+        WHERE 1 = 1
+    ';
+
+    $params = [];
+
+    if ($search !== null && $search !== '') {
+        $sql .= '
+            AND (
+                CAST(id AS CHAR) LIKE :search
+                OR department_name LIKE :search
+                OR description LIKE :search
+            )
+        ';
+
+        $params[':search'] = '%' . $search . '%';
+    }
+
+    if ($status !== null && $status !== '') {
+        $sql .= ' AND status = :status';
+
+        $params[':status'] = $status;
+    }
+
+    $sql .= ' ORDER BY id ASC';
+
+    $stmt = $this->conn->prepare($sql);
+    $stmt->execute($params);
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
     public function getById(int $id): ?array
     {
         $stmt = $this->conn->prepare(

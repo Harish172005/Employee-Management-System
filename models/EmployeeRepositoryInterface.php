@@ -35,6 +35,7 @@ interface EmployeeRepositoryInterface
         ?string $status = null,
         ?int $departmentId = null
     ): int;
+    public function findByEmail(string $email): ?array;
 
     public function update(int $id, array $data): bool;
 

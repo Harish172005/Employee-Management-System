@@ -1,6 +1,3 @@
-// ============================================================
-// Pagination
-// ============================================================
 
 function previousPage(event) {
 
@@ -20,11 +17,6 @@ function nextPage(event) {
 
     event.preventDefault();
 
-    console.log(
-        'NEXT CLICK - BEFORE:',
-        paginationState.currentPage
-    );
-
     if (
         paginationState.currentPage >=
         paginationState.totalPages
@@ -33,11 +25,6 @@ function nextPage(event) {
     }
 
     paginationState.currentPage++;
-
-    console.log(
-        'NEXT CLICK - AFTER:',
-        paginationState.currentPage
-    );
 
     fetchEmployees();
 }

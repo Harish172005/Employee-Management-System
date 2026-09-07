@@ -17,3 +17,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $uri === 'api/departments') {
     $controller = new DepartmentController();
     $controller->getDepartments();
 }
+
+if ($_SERVER['REQUEST_METHOD'] === 'PUT' && preg_match('/^api\/departments\/(\d+)$/',$uri, $matches)) {
+    require_once __DIR__ . '/../controllers/DepartmentController.php';
+    $controller = new DepartmentController();
+    $departmentId = intval($matches[1]);
+    $controller->updateDepartment($departmentId);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && preg_match('/^api\/departments\/(\d+)$/',$uri, $matches)) {
+    require_once __DIR__ . '/../controllers/DepartmentController.php';
+    $controller = new DepartmentController();
+    $departmentId = intval($matches[1]);
+    $controller->getDepartmentById($departmentId);
+}
