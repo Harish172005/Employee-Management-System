@@ -2,11 +2,13 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     const form = document.getElementById('addEmployeeForm');
     const messageBox = document.getElementById('formMessage');
-    const departmentSelect = document.getElementById('department');
-
     if (!form) return;
 
-    await loadDepartments();
+    try {
+        await loadActiveDepartments('department');
+    } catch (error) {
+        console.error('Department loading error:', error);
+    }
 
     form.addEventListener('submit', async function (event) {
         event.preventDefault();
@@ -127,63 +129,4 @@ document.addEventListener('DOMContentLoaded', async function () {
                 error.message;
         }
     });
-
-
-    async function loadDepartments() {
-
-        if (!departmentSelect) return;
-
-        try {
-
-            const response = await fetch('/api/departments', {
-                method: 'GET',
-                credentials: 'include'
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message ||
-                    'Unable to load departments.'
-                );
-            }
-
-            const departments = data.data || [];
-
-            departmentSelect.innerHTML = `
-                <option value="">Select Department</option>
-            `;
-
-            departments
-                .filter(department =>
-                    department.status === 'active'
-                )
-                .forEach(department => {
-
-                    const option =
-                        document.createElement('option');
-
-                    option.value = department.id;
-
-                    option.textContent =
-                        department.department_name;
-
-                    departmentSelect.appendChild(option);
-                });
-
-        } catch (error) {
-
-            console.error(
-                'Department loading error:',
-                error
-            );
-
-            departmentSelect.innerHTML = `
-                <option value="">
-                    Unable to load departments
-                </option>
-            `;
-        }
-    }
 });

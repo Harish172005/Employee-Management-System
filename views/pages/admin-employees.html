@@ -114,21 +114,139 @@
     </main>
 
     <!-- Employee Details Modal (View) -->
-    <div class="modal fade" id="employeeModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Employee Information</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="employeeDetailsContent" class="text-center text-muted">
-                        Loading...
-                    </div>
-                </div>
+   <div class="modal fade" id="employeeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Employee Details</h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
             </div>
+
+            <div class="modal-body">
+
+                <div class="text-center mb-4">
+                    <img
+                        id="employeeProfilePhoto"
+                        src=""
+                        alt="Profile Photo"
+                        class="rounded"
+                        style="
+                            width: 150px;
+                            height: 150px;
+                            object-fit: cover;
+                        "
+                    >
+
+                    <p
+                        id="noProfilePhoto"
+                        class="text-muted"
+                        style="display: none;">
+                        No profile photo available
+                    </p>
+                </div>
+
+                <div class="row mb-3">
+
+                    <div class="col-md-6">
+                        <h6 class="text-muted">First Name</h6>
+                        <p id="employeeFirstName">-</p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Last Name</h6>
+                        <p id="employeeLastName">-</p>
+                    </div>
+
+                </div>
+
+                <div class="row mb-3">
+
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Email</h6>
+                        <p id="employeeEmail">-</p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Phone</h6>
+                        <p id="employeePhone">-</p>
+                    </div>
+
+                </div>
+
+                <div class="row mb-3">
+
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Date of Birth</h6>
+                        <p id="employeeDateOfBirth">-</p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Gender</h6>
+                        <p id="employeeGender">-</p>
+                    </div>
+
+                </div>
+
+                <div class="row mb-3">
+
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Department</h6>
+                        <p id="employeeDepartment">-</p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Designation</h6>
+                        <p id="employeeDesignation">-</p>
+                    </div>
+
+                </div>
+
+                <div class="row mb-3">
+
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Date of Joining</h6>
+                        <p id="employeeDateOfJoining">-</p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Salary</h6>
+                        <p id="employeeSalary">-</p>
+                    </div>
+
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="text-muted">Address</h6>
+                    <p id="employeeAddress">-</p>
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <h6 class="text-muted">Status</h6>
+
+                        <span
+                            id="employeeStatus"
+                            class="badge">
+                            -
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
     </div>
+</div>
 
     <!-- Employee Edit Modal -->
 <div class="modal fade" id="editEmployeeModal" tabindex="-1">
@@ -415,7 +533,7 @@
                         role="alert">
                     </div> 
                     
-                    <div id="formMessage" class="alert d-none mt-4" role="alert"></div>
+                    <div id="messageBox" class="alert d-none mt-4" role="alert"></div>
 
                     <div class="modal-footer">
 
@@ -443,6 +561,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
    <!-- employees.html (or whatever renders the employees table) -->
+    <script src="/js/shared/department-select.js"></script>
     <script src="/js/pages/employees/state.js"></script>
     <script src="/js/pages/employees/pagination.js"></script>
     <script src="/js/pages/employees/table.js"></script>

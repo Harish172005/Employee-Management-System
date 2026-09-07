@@ -34,8 +34,8 @@ Load `shared/` scripts before anything that depends on them:
 ```html
 <!-- Form pages -->
 <script src="/js/shared/csrf.js"></script>
-<script src="/js/shared/user-display.js"></script>
-<script src="/js/forms/employee-form.js"></script>
+<script src="/js/shared/department-select.js"></script>
+<script src="/js/pages/employees/employee-form.js"></script>
 ```
 
 ```html

@@ -5,6 +5,41 @@ require_once __DIR__ . '/EmployeeRepositoryInterface.php';
 
 class EmployeeRepository extends BaseRepository implements EmployeeRepositoryInterface
 {
+    public function hasEmployeesInDepartment(int $departmentId): bool
+    {
+        $stmt = $this->getConnection()->prepare(
+            'SELECT EXISTS(
+                SELECT 1
+                FROM employees
+                WHERE department_id = :department_id
+            ) AS has_employees'
+        );
+
+        $stmt->execute([
+            ':department_id' => $departmentId
+        ]);
+
+        return (bool) $stmt->fetchColumn();
+    }
+
+    public function findByEmail(string $email): ?array
+{
+    $stmt = $this->conn->prepare(
+        'SELECT id, email
+         FROM employees
+         WHERE email = :email
+         LIMIT 1'
+    );
+
+    $stmt->execute([
+        ':email' => $email
+    ]);
+
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $result ?: null;
+}
+
     public function create(
         string $firstName,
         string $lastName,

@@ -279,7 +279,7 @@ class EmployeeValidator
         mixed $salary
     ): ?array {
 
-        if (!is_numeric($salary)) {
+        if (!is_numeric($salary) && !($salary >= 0)) {
             return [
                 'success' => false,
                 'message' => 'Salary must be a valid number.',

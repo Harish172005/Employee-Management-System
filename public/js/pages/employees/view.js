@@ -1,7 +1,3 @@
-// ============================================================
-// View Employee
-// ============================================================
-
 async function viewEmployeeInfo(employeeId) {
 
     try {
@@ -25,143 +21,74 @@ async function viewEmployeeInfo(employeeId) {
 
         const employee = result.data;
 
-        const profilePhotoHtml = employee.profile_photo
-            ? `
-                <div class="text-center mb-3">
-                    <img
-                        src="${employee.profile_photo}"
-                        alt="Profile Photo"
-                        class="rounded"
-                        style="
-                            width: 150px;
-                            height: 150px;
-                            object-fit: cover;
-                        "
-                    >
-                </div>
-              `
-            : `
-                <p class="text-muted text-center">
-                    No profile photo available
-                </p>
-              `;
+        document.getElementById('employeeFirstName').textContent =
+            employee.first_name || '-';
 
-        const modalContent = `
-            ${profilePhotoHtml}
+        document.getElementById('employeeLastName').textContent =
+            employee.last_name || '-';
 
-            <div class="row mb-3">
+        document.getElementById('employeeEmail').textContent =
+            employee.email || '-';
 
-                <div class="col-md-6">
-                    <h6 class="text-muted">First Name</h6>
-                    <p>${employee.first_name || '-'}</p>
-                </div>
+        document.getElementById('employeePhone').textContent =
+            employee.phone || '-';
 
-                <div class="col-md-6">
-                    <h6 class="text-muted">Last Name</h6>
-                    <p>${employee.last_name || '-'}</p>
-                </div>
+        document.getElementById('employeeDateOfBirth').textContent =
+            employee.date_of_birth || '-';
 
-            </div>
+        document.getElementById('employeeGender').textContent =
+            employee.gender || '-';
 
-            <div class="row mb-3">
+        document.getElementById('employeeDepartment').textContent =
+            employee.department || '-';
 
-                <div class="col-md-6">
-                    <h6 class="text-muted">Email</h6>
-                    <p>${employee.email || '-'}</p>
-                </div>
+        document.getElementById('employeeDesignation').textContent =
+            employee.designation || '-';
 
-                <div class="col-md-6">
-                    <h6 class="text-muted">Phone</h6>
-                    <p>${employee.phone || '-'}</p>
-                </div>
+        document.getElementById('employeeDateOfJoining').textContent =
+            employee.date_of_joining || '-';
 
-            </div>
+        document.getElementById('employeeSalary').textContent =
+            Number(employee.salary || 0).toLocaleString(
+                undefined,
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            );
 
-            <div class="row mb-3">
+        document.getElementById('employeeAddress').textContent =
+            employee.address || '-';
 
-                <div class="col-md-6">
-                    <h6 class="text-muted">Date of Birth</h6>
-                    <p>${employee.date_of_birth || '-'}</p>
-                </div>
+        const statusElement =
+            document.getElementById('employeeStatus');
 
-                <div class="col-md-6">
-                    <h6 class="text-muted">Gender</h6>
-                    <p>${employee.gender || '-'}</p>
-                </div>
+        statusElement.textContent =
+            employee.status || '-';
 
-            </div>
+        statusElement.className =
+            employee.status === 'active'
+                ? 'badge bg-success'
+                : 'badge bg-secondary';
 
-            <div class="row mb-3">
+        const photo =
+            document.getElementById('employeeProfilePhoto');
 
-                <div class="col-md-6">
-                    <h6 class="text-muted">Department</h6>
-                    <p>${employee.department || '-'}</p>
-                </div>
+        const noPhoto =
+            document.getElementById('noProfilePhoto');
 
-                <div class="col-md-6">
-                    <h6 class="text-muted">Designation</h6>
-                    <p>${employee.designation || '-'}</p>
-                </div>
+        if (employee.profile_photo) {
 
-            </div>
+            photo.src = employee.profile_photo;
+            photo.style.display = 'block';
+            noPhoto.style.display = 'none';
 
-            <div class="row mb-3">
+        } else {
 
-                <div class="col-md-6">
-                    <h6 class="text-muted">Date of Joining</h6>
-                    <p>${employee.date_of_joining || '-'}</p>
-                </div>
+            photo.style.display = 'none';
+            noPhoto.style.display = 'block';
 
-                <div class="col-md-6">
-                    <h6 class="text-muted">Salary</h6>
-                    <p>
-                        ${Number(employee.salary || 0).toLocaleString(
-                            undefined,
-                            {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            }
-                        )}
-                    </p>
-                </div>
-
-            </div>
-
-            <div class="mb-3">
-                <h6 class="text-muted">Address</h6>
-                <p>${employee.address || '-'}</p>
-            </div>
-
-            <div class="row">
-
-                <div class="col-md-6">
-
-                    <h6 class="text-muted">Status</h6>
-
-                    <span class="badge ${
-                        employee.status === 'active'
-                            ? 'bg-success'
-                            : 'bg-secondary'
-                    }">
-                        ${employee.status}
-                    </span>
-
-                </div>
-
-                <div class="col-md-6">
-
-                    <h6 class="text-muted">Employee ID</h6>
-
-                    <p>${employee.id}</p>
-
-                </div>
-
-            </div>
-        `;
-
-        document.getElementById(
-            'employeeDetailsContent'
-        ).innerHTML = modalContent;
+        }
 
         const modal = new bootstrap.Modal(
             document.getElementById('employeeModal')

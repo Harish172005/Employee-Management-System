@@ -114,6 +114,17 @@ if ($method === 'GET' && $uri === 'employee') {
     exit;
 }
 
+if ($method === 'GET' && $uri === 'admin/departments') {
+
+    require __DIR__ . '/../middlewares/AuthMiddleware.php';
+
+    AuthMiddleware::requireRole(['admin']);
+
+    require __DIR__ . '/../views/pages/department-management.html';
+
+    exit;
+}
+
 
 // Route not found
 http_response_code(404);
