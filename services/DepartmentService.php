@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../config/dbConfig.php';
 require_once __DIR__ . '/../models/DepartmentRepository.php';
+require_once __DIR__ . '/../models/EmployeeRepository.php';
 require_once __DIR__ . '/../traits/FieldValidationTrait.php';
 
 class DepartmentService
@@ -279,6 +280,20 @@ public function deactivateDepartment(
                 return $this->error(
                     'Department is already inactive.',
                     400
+                );
+            }
+
+            $employeeRepository =
+                new EmployeeRepository($conn);
+
+            if (
+                $employeeRepository->hasEmployeesInDepartment(
+                    $departmentId
+                )
+            ) {
+                return $this->error(
+                    'Cannot deactivate a department while employees are assigned to it.',
+                    409
                 );
             }
 
