@@ -20,7 +20,7 @@
         <div class="container-fluid">
 
             <a class="navbar-brand" href="/admin">
-                Admin Dashboard
+                Employee Management System
             </a>
 
             <button class="navbar-toggler"
@@ -41,19 +41,12 @@
                         <span class="nav-link" id="userDisplay"></span>
                     </li>
 
-                    <!-- Add Employee -->
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           href="/admin/add-employee">
-                            Add Employee
-                        </a>
-                    </li>
 
                     <!-- Add User -->
                     <li class="nav-item">
                         <a class="nav-link"
                            href="/admin/add-user">
-                            Add User
+                            Manage User
                         </a>
                     </li>
 
@@ -61,23 +54,18 @@
                     <li class="nav-item">
                         <a class="nav-link"
                            href="/admin/employees">
-                            Employees
+                           Manage Employees
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link"
                            href="/admin/departments">
-                            Departments
+                            Manage Departments
                         </a>
                     </li>
 
                     <!-- Add Department -->
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           href="/admin/add-department">
-                            Add Department
-                        </a>
-                    </li>
+            
 
                     <!-- Change Password -->
                     <li class="nav-item">
@@ -105,15 +93,41 @@
     <!-- Main Content -->
     <main class="container py-5">
 
-        <div class="text-center">
+        <div class="mb-5">
 
-            <h1>Welcome to Admin Dashboard</h1>
+            <h1 class="mb-1">Admin Dashboard</h1>
+            <p class="text-muted mb-0">
+                Employee and department overview
+            </p>
+        </div>
+
+        <section class="mb-5">
+            <h2 class="h4 mb-3">Overview</h2>
+
+            <div id="dashboardSummary" class="row g-4">
+                <div class="col-12 text-center text-muted">
+                    Loading dashboard...
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="h4 mb-3">Employees by Department</h2>
+
+            <div id="departmentEmployeeCounts" class="row g-4">
+                <div class="col-12 text-center text-muted">
+                    Loading departments...
+                </div>
+            </div>
+        </section>
+    </main>
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
     </script>
     <script src="/js/shared/csrf.js"></script>
     <script src="/js/auth/logout.js"></script>
+    <script src="/js/pages/dashboard/dashboard.js"></script>
 
 </body>
 
