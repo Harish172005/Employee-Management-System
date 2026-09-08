@@ -19,11 +19,11 @@ if (str_starts_with($uri, 'api/')) {
         require __DIR__ . '/../routes/UserRoutes.php';
     }
 
-    if ($uri === 'api/employees' || str_starts_with($uri, 'api/employees/')) {
+    if ($uri === 'api/employees' || str_starts_with($uri, 'api/employees/') ||  str_starts_with($uri, 'api/employee/')) {
         require __DIR__ . '/../routes/EmployeeRoutes.php';
     }
 
-    if ($uri === 'api/departments' || str_starts_with($uri, 'api/departments/')) {
+    if ($uri === 'api/department' || str_starts_with($uri, 'api/departments/')) {
         require __DIR__ . '/../routes/DepartmentRoutes.php';
     }
 
@@ -39,7 +39,7 @@ if (str_starts_with($uri, 'api/')) {
 
 if ($method === 'GET' && $uri === 'login') {
 
-    require __DIR__ . '/../views/pages/login.html';
+    require __DIR__ . '/../views/login.html';
 
     exit;
 }
@@ -51,7 +51,7 @@ if ($method === 'GET' && $uri === 'admin') {
 
     AuthMiddleware::requireRole(['admin']);
 
-    require __DIR__ . '/../views/pages/admin-dashboard.html';
+    require __DIR__ . '/../views/pages/admin/admin-dashboard.html';
 
     exit;
 }
@@ -62,7 +62,7 @@ if ($method === 'GET' && $uri === 'admin/add-user') {
 
     AuthMiddleware::requireRole(['admin']);
 
-    require __DIR__ . '/../views/pages/add-user.html';
+    require __DIR__ . '/../views/pages/admin/add-user.html';
 
     exit;
 }
@@ -73,7 +73,7 @@ if ($method === 'GET' && $uri === 'admin/add-employee') {
 
     AuthMiddleware::requireRole(['admin']);
 
-    require __DIR__ . '/../views/pages/add-employee.html';
+    require __DIR__ . '/../views/pages/admin/add-employee.html';
 
     exit;
 }
@@ -84,7 +84,7 @@ if ($method === 'GET' && $uri === 'admin/add-department') {
 
     AuthMiddleware::requireRole(['admin']);
 
-    require __DIR__ . '/../views/pages/add-department.html';
+    require __DIR__ . '/../views/pages/admin/add-department.html';
 
     exit;
 }
@@ -95,14 +95,14 @@ if ($method === 'GET' && $uri === 'admin/employees') {
 
     AuthMiddleware::requireRole(['admin']);
 
-    require __DIR__ . '/../views/pages/admin-employees.html';
+    require __DIR__ . '/../views/pages/admin/admin-employees.html';
 
     exit;
 }
 
 if ($method === 'GET' && $uri === 'change-password') {
 
-    require __DIR__ . '/../views/pages/change-password.html';
+    require __DIR__ . '/../views/change-password.html';
     exit;
 }
 
@@ -113,7 +113,29 @@ if ($method === 'GET' && $uri === 'employee') {
 
     AuthMiddleware::requireRole(['employee']);
 
-    require __DIR__ . '/../views/pages/employee-dashboard.html';
+    require __DIR__ . '/../views/pages/employee/employee-dashboard.html';
+
+    exit;
+}
+
+if ($method === 'GET' && $uri === 'employee/profile') {
+
+    require __DIR__ . '/../middlewares/AuthMiddleware.php';
+
+    AuthMiddleware::requireRole(['employee']);
+
+    require __DIR__ . '/../views/pages/employee/employee-profile.html';
+
+    exit;
+}
+
+if ($method === 'GET' && $uri === 'employee/department') {
+
+    require __DIR__ . '/../middlewares/AuthMiddleware.php';
+
+    AuthMiddleware::requireRole(['employee']);
+
+    require __DIR__ . '/../views/pages/employee/employee-department.html';
 
     exit;
 }
@@ -136,3 +158,5 @@ http_response_code(404);
 echo "404 - Page not found";
 
 require __DIR__ . '/../routes/AuthRoutes.php';
+
+

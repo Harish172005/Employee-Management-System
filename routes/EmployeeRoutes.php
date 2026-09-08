@@ -40,3 +40,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $uri === 'api/employees/create') {
     $controller->createEmployee();
     exit;
 }
+
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'GET' &&
+    $uri === 'api/employee/profile'
+) {
+    require_once __DIR__ . '/../controllers/EmployeeController.php';
+    $controller = new EmployeeController();
+    $controller->getOwnProfile();
+    exit;
+}
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'GET' &&
+    $uri === 'api/employee/department'
+) {
+    require_once __DIR__ . '/../controllers/EmployeeController.php';
+    $controller = new EmployeeController();
+    $controller->getOwnDepartment();
+    exit;
+}
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    $uri === 'api/employee/profile'
+) {
+    require_once __DIR__ . '/../controllers/EmployeeController.php';
+
+    CsrfMiddleware::requireToken();
+    $controller = new EmployeeController();
+    $controller->updateOwnProfile();
+    exit;
+}
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'GET' &&
+    preg_match('/^api\/employees\/(\d+)$/', $uri, $matches)) {
+    require_once __DIR__ . '/../controllers/EmployeeController.php';
+
+    CsrfMiddleware::requireToken();
+    $controller = new EmployeeController();
+    $controller->updateOwnProfile();
+    exit;
+}
+
+
+

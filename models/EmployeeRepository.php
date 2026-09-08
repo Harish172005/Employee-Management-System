@@ -140,6 +140,49 @@ class EmployeeRepository extends BaseRepository implements EmployeeRepositoryInt
         return $result ?: null;
     }
 
+    public function getByDepartmentId(int $departmentId): array
+{
+    $stmt = $this->conn->prepare(
+        "SELECT
+            id,
+            first_name,
+            last_name,
+            email,
+            designation,
+            status
+         FROM employees
+         WHERE department_id = :department_id
+         ORDER BY id ASC"
+    );
+
+    $stmt->execute([
+        ':department_id' => $departmentId
+    ]);
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+    public function getByEmail(string $email): ?array
+    {
+        $stmt = $this->getConnection()->prepare(
+            'SELECT
+                e.*,
+                d.department_name AS department
+             FROM employees e
+             JOIN departments d ON e.department_id = d.id
+             WHERE e.email = :email
+             LIMIT 1'
+        );
+
+        $stmt->execute([
+            ':email' => $email
+        ]);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result ?: null;
+    }
+
     public function getFiltered(
         ?string $search = null,
         ?string $status = null,

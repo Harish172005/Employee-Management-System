@@ -149,4 +149,79 @@ class EmployeeController extends BaseController
             'message' => $result['message'] ?? null
         ]);
     }
+
+     public function getOwnProfile(): void
+    {
+        header('Content-Type: application/json');
+
+        AuthMiddleware::requireLogin();
+
+        $email = $_SESSION['email'];
+
+        $service = new EmployeeService();
+
+        $result = $service->getOwnProfile($email);
+
+        $this->respond(
+            $result['statusCode'] ?? 500,
+            [
+                'success' => $result['success'],
+                'message' => $result['message'] ?? null,
+                'data' => $result['data'] ?? null
+            ]
+        );
+    }
+
+
+    public function getOwnDepartment(): void
+    {
+        header('Content-Type: application/json');
+
+        AuthMiddleware::requireLogin();
+
+        $email = $_SESSION['email'];
+
+        $service = new EmployeeService();
+
+        $result = $service->getOwnDepartment($email);
+
+        $this->respond(
+            $result['statusCode'] ?? 500,
+            [
+                'success' => $result['success'],
+                'message' => $result['message'] ?? null,
+                'data' => $result['data'] ?? null
+            ]
+        );
+    }
+
+
+    public function updateOwnProfile(): void
+    {
+        header('Content-Type: application/json');
+
+        AuthMiddleware::requireLogin();
+
+        $email = $_SESSION['email'];
+
+        $data = $_POST;
+
+        $file = $_FILES['profile_photo'] ?? null;
+
+        $service = new EmployeeService();
+
+        $result = $service->updateOwnProfile(
+            $email,
+            $data,
+            $file
+        );
+
+        $this->respond(
+            $result['statusCode'] ?? 500,
+            [
+                'success' => $result['success'],
+                'message' => $result['message'] ?? null
+            ]
+        );
+    }
 }

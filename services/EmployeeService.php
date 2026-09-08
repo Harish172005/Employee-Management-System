@@ -198,8 +198,169 @@ class EmployeeService
         }
     }
 
+    public function getOwnProfile(string $email): array
+    {
+        try {
+            $repository = new EmployeeRepository(
+                DBConfig::getConnection()
+            );
+            $employee = $repository->getByEmail($email);
+
+            if (!$employee) {
+                return $this->error('Employee profile not found.', 404);
+            }
+
+            return [
+                'success' => true,
+                'data' => $employee,
+                'statusCode' => 200
+            ];
+        } catch (Throwable $e) {
+            $this->logException($e);
+            return $this->error('Failed to retrieve employee profile.', 500);
+        }
+    }
+
+    public function getOwnDepartment(string $email): array
+{
+    try {
+        $employeeRepository = new EmployeeRepository(
+            DBConfig::getConnection()
+        );
+
+        $employee = $employeeRepository->getByEmail($email);
+
+        if (!$employee) {
+            return $this->error(
+                'Employee profile not found.',
+                404
+            );
+        }
+
+        $departmentRepository = new DepartmentRepository(
+            DBConfig::getConnection()
+        );
+
+        $department = $departmentRepository->getById(
+            (int) $employee['department_id']
+        );
+
+        if (!$department) {
+            return $this->error(
+                'Department not found.',
+                404
+            );
+        }
+
+        $employees = $employeeRepository->getByDepartmentId(
+            (int) $employee['department_id']
+        );
+
+        $department['employee_count'] = count($employees);
+        $department['employees'] = $employees;
+
+        return [
+            'success' => true,
+            'data' => $department,
+            'statusCode' => 200
+        ];
+
+    } catch (Throwable $e) {
+
+        $this->logException($e);
+
+        return $this->error(
+            'Failed to retrieve department.',
+            500
+        );
+    }
+}
+
+    public function updateOwnProfile(
+        string $email,
+        array $data,
+        ?array $file = null
+    ): array {
+        $uploadedPhotoPath = null;
+
+        try {
+            $repository = new EmployeeRepository(
+                DBConfig::getConnection()
+            );
+            $employee = $repository->getByEmail($email);
+
+            if (!$employee) {
+                return $this->error('Employee profile not found.', 404);
+            }
+
+            $permittedFields = [
+                'address',
+                'phone',
+                'gender',
+                'date_of_birth'
+            ];
+            $updateData = array_intersect_key(
+                $data,
+                array_flip($permittedFields)
+            );
+
+            $validationError = EmployeeValidator::validateUpdate($updateData);
+
+            if ($validationError !== null) {
+                return $validationError;
+            }
+
+            foreach (['address', 'phone', 'gender', 'date_of_birth'] as $field) {
+                if (array_key_exists($field, $updateData)) {
+                    $updateData[$field] = trim((string) $updateData[$field]);
+                }
+            }
+
+            if (
+                array_key_exists('address', $updateData) &&
+                $updateData['address'] === ''
+            ) {
+                return $this->error('Address is required.', 400);
+            }
+
+            if ($file !== null && $file['error'] !== UPLOAD_ERR_NO_FILE) {
+                $uploadResult = $this->uploadProfilePhoto($file);
+
+                if (is_array($uploadResult) && $uploadResult['success'] === false) {
+                    return $uploadResult;
+                }
+
+                $uploadedPhotoPath = $uploadResult;
+                $updateData['profile_photo'] = $uploadedPhotoPath;
+            }
+
+            if (empty($updateData)) {
+                return $this->error('No permitted fields were provided.', 400);
+            }
+
+            if (!$repository->update((int) $employee['id'], $updateData)) {
+                $this->deletePhoto($uploadedPhotoPath);
+                return $this->error('Failed to update employee profile.', 500);
+            }
+
+            if ($uploadedPhotoPath !== null) {
+                $this->deletePhoto($employee['profile_photo'] ?? null);
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Profile updated successfully.',
+                'statusCode' => 200
+            ];
+        } catch (Throwable $e) {
+            $this->deletePhoto($uploadedPhotoPath);
+            $this->logException($e);
+            return $this->error('Failed to update employee profile.', 500);
+        }
+    }
+
     public function createEmployee(
-        array $data
+        array $data, string $file
     ): array {
 
         $uploadedPhotoPath = null;
@@ -284,7 +445,7 @@ class EmployeeService
 
             $uploadResult =
                 $this->uploadProfilePhoto(
-                    $_FILES['profile_photo'] ?? null
+                    $file ?? null
                 );
 
             if (
