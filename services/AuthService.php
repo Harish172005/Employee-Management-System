@@ -3,10 +3,15 @@
 require_once __DIR__ . '/../config/dbConfig.php';
 require_once __DIR__ . '/../utilities/PasswordHasher.php';
 require_once __DIR__ . '/../utilities/PasswordValidator.php';
-  require_once __DIR__ . '/../models/UserRepository.php';
 
 class AuthService
 {
+    private UserRepositoryInterface $userRepository;
+    public function __construct(
+        UserRepositoryInterface $userRepository,
+    ) {
+        $this->userRepository = $userRepository;
+    }
     public function login(string $username, string $password): array
     {
         if ($username === '' || $password === '') {
@@ -25,8 +30,7 @@ class AuthService
         //     ];
         // }
 
-        $user = new UserRepository(DBConfig::getConnection());
-        $user = $user->findByUsername($username);
+        $user = $this->userRepository->findByUsername($username);
 
         $genericError = 'Invalid username or password.';
 

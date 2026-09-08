@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__ . '/../config/dbConfig.php';
-require_once __DIR__ . '/../models/UserRepository.php';
 require_once __DIR__ . '/../traits/FieldValidationTrait.php';
 require_once __DIR__ . '/../utilities/PasswordHasher.php';
 require_once __DIR__ . '/../utilities/PasswordValidator.php';
@@ -10,6 +9,13 @@ require_once __DIR__ . '/../utilities/EmailValidator.php';
 class UserService
 {
     use FieldValidationTrait;
+    
+    private UserRepositoryInterface $userRepository;
+    public function __construct(
+        UserRepositoryInterface $userRepository,
+    ) {
+        $this->userRepository = $userRepository;
+    }
     public function createUser(array $data): array
     {
         $requiredFields = ['name', 'email', 'username', 'password', 'role', 'status'];
@@ -60,10 +66,8 @@ class UserService
             ];
         }
 
-        $conn = DBConfig::getConnection();
-        $userRepository = new UserRepository($conn);
 
-        if ($userRepository->findByUsername($username)) {
+        if ($this->userRepository->findByUsername($username)) {
             return [
                 'success' => false,
                 'message' => 'Username already exists.',
@@ -71,7 +75,7 @@ class UserService
             ];
         }
 
-        if ($userRepository->findByEmail($email)) {
+        if ($this->userRepository->findByEmail($email)) {
             return [
                 'success' => false,
                 'message' => 'Email already exists.',
@@ -81,7 +85,7 @@ class UserService
 
         $hashedPassword = PasswordHasher::hash($password);
 
-        $created = $userRepository->create(
+        $created = $this->userRepository->create(
             $name,
             $email,
             $username,

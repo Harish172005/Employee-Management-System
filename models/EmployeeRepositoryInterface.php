@@ -24,6 +24,8 @@ interface EmployeeRepositoryInterface
 
     public function getByEmail(string $email): ?array;
 
+    public function getByDepartmentId(int $id) : array;
+
     public function getFiltered(
         ?string $search = null,
         ?string $status = null,
