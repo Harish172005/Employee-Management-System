@@ -3,7 +3,7 @@
 require_once __DIR__ . '/BaseRepository.php';
 require_once __DIR__ . '/UserRepositoryInterface.php';
 
-class UserRepository extends BaseRepository implements UserRepositoryInterface
+class UserRepository extends BaseRepository
 {
     public function findByUsername(string $username)
     {

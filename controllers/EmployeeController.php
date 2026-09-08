@@ -2,10 +2,28 @@
 
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../middlewares/AuthMiddleware.php';
+require_once __DIR__ . '/../config/dbConfig.php';
+require_once __DIR__ . '/../models/EmployeeRepository.php';
+require_once __DIR__ . '/../models/DepartmentRepository.php';
 require_once __DIR__ . '/../services/EmployeeService.php';
 
 class EmployeeController extends BaseController
 {
+    private EmployeeService $service;
+
+    public function __construct()
+    {
+        $conn = DBConfig::getConnection();
+
+        $employeeRepository = new EmployeeRepository($conn);
+        $departmentRepository = new DepartmentRepository($conn);
+
+        $this->service = new EmployeeService(
+            $employeeRepository,
+            $departmentRepository
+        );
+    }
+
     public function getEmployees(): void
     {
         header('Content-Type: application/json');
@@ -13,8 +31,7 @@ class EmployeeController extends BaseController
         AuthMiddleware::requireLogin();
         AuthMiddleware::requireAdmin();
 
-        $service = new EmployeeService();
-        $result = $service->getEmployees($_GET);
+        $result = $this->service->getEmployees($_GET);
 
         $this->respond($result['statusCode'] ?? 500, [
             'success' => $result['success'],
@@ -44,9 +61,7 @@ class EmployeeController extends BaseController
 
         $file = $_FILES['profile_photo'] ?? null;
 
-        $service = new EmployeeService();
-
-        $result = $service->createEmployee(
+        $result = $this->service->createEmployee(
             $data ?? [],
             $file
         );
@@ -72,9 +87,7 @@ class EmployeeController extends BaseController
             return;
         }
 
-        $service = new EmployeeService();
-
-        $result = $service->getEmployeeById($employeeId);
+        $result = $this->service->getEmployeeById($employeeId);
 
         $this->respond($result['statusCode'] ?? 500, [
             'success' => $result['success'],
@@ -111,9 +124,7 @@ class EmployeeController extends BaseController
 
         $file = $_FILES['profile_photo'] ?? null;
 
-        $service = new EmployeeService();
-
-        $result = $service->updateEmployee(
+        $result = $this->service->updateEmployee(
             $employeeId,
             $data ?? [],
             $file
@@ -140,9 +151,7 @@ class EmployeeController extends BaseController
             return;
         }
 
-        $service = new EmployeeService();
-
-        $result = $service->deactivateEmployee($employeeId);
+        $result = $this->service->deactivateEmployee($employeeId);
 
         $this->respond($result['statusCode'] ?? 500, [
             'success' => $result['success'],
@@ -150,7 +159,7 @@ class EmployeeController extends BaseController
         ]);
     }
 
-     public function getOwnProfile(): void
+    public function getOwnProfile(): void
     {
         header('Content-Type: application/json');
 
@@ -158,9 +167,7 @@ class EmployeeController extends BaseController
 
         $email = $_SESSION['email'];
 
-        $service = new EmployeeService();
-
-        $result = $service->getOwnProfile($email);
+        $result = $this->service->getOwnProfile($email);
 
         $this->respond(
             $result['statusCode'] ?? 500,
@@ -171,7 +178,6 @@ class EmployeeController extends BaseController
             ]
         );
     }
-
 
     public function getOwnDepartment(): void
     {
@@ -181,9 +187,7 @@ class EmployeeController extends BaseController
 
         $email = $_SESSION['email'];
 
-        $service = new EmployeeService();
-
-        $result = $service->getOwnDepartment($email);
+        $result = $this->service->getOwnDepartment($email);
 
         $this->respond(
             $result['statusCode'] ?? 500,
@@ -194,7 +198,6 @@ class EmployeeController extends BaseController
             ]
         );
     }
-
 
     public function updateOwnProfile(): void
     {
@@ -208,9 +211,7 @@ class EmployeeController extends BaseController
 
         $file = $_FILES['profile_photo'] ?? null;
 
-        $service = new EmployeeService();
-
-        $result = $service->updateOwnProfile(
+        $result = $this->service->updateOwnProfile(
             $email,
             $data,
             $file

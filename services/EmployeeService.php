@@ -1,11 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../config/dbConfig.php';
-require_once __DIR__ . '/../models/EmployeeRepository.php';
-require_once __DIR__ . '/../models/DepartmentRepository.php';
-require_once __DIR__ . '/../traits/FieldValidationTrait.php';
 require_once __DIR__ . '/../utilities/EmployeeValidator.php';
 require_once __DIR__ . '/../utilities/FileValidator.php';
+require_once __DIR__ . '/../traits/FieldValidationTrait.php';
 
 class EmployeeService
 {
@@ -16,17 +13,21 @@ class EmployeeService
     private const UPLOAD_DIR =
         __DIR__ . '/../public/uploads/profile-photos/';
 
+    private EmployeeRepositoryInterface $employeeRepository;
+
+    private DepartmentRepositoryInterface $departmentRepository;
+
+    public function __construct(
+        EmployeeRepositoryInterface $employeeRepository,
+        DepartmentRepositoryInterface $departmentRepository
+    ) {
+        $this->employeeRepository = $employeeRepository;
+        $this->departmentRepository = $departmentRepository;
+    }
+
     public function getEmployees(array $filters = []): array
     {
         try {
-            $conn = DBConfig::getConnection();
-
-            $employeeRepository =
-                new EmployeeRepository($conn);
-
-            $departmentRepository =
-                new DepartmentRepository($conn);
-
             $search = $this->cleanFilter(
                 $filters['search'] ?? null
             );
@@ -78,9 +79,8 @@ class EmployeeService
             }
 
             if ($departmentId !== null) {
-
                 $department =
-                    $departmentRepository->getById(
+                    $this->departmentRepository->getById(
                         $departmentId
                     );
 
@@ -103,7 +103,7 @@ class EmployeeService
             }
 
             $totalCount =
-                $employeeRepository->countFiltered(
+                $this->employeeRepository->countFiltered(
                     $search,
                     $status,
                     $departmentId
@@ -115,7 +115,7 @@ class EmployeeService
                 );
 
             $employees =
-                $employeeRepository->getFiltered(
+                $this->employeeRepository->getFiltered(
                     $search,
                     $status,
                     $departmentId,
@@ -161,14 +161,8 @@ class EmployeeService
 
         try {
 
-            $conn =
-                DBConfig::getConnection();
-
-            $employeeRepository =
-                new EmployeeRepository($conn);
-
             $employee =
-                $employeeRepository->getById(
+                $this->employeeRepository->getById(
                     $employeeId
                 );
 
@@ -198,16 +192,22 @@ class EmployeeService
         }
     }
 
-    public function getOwnProfile(string $email): array
-    {
+    public function getOwnProfile(
+        string $email
+    ): array {
+
         try {
-            $repository = new EmployeeRepository(
-                DBConfig::getConnection()
-            );
-            $employee = $repository->getByEmail($email);
+
+            $employee =
+                $this->employeeRepository->getByEmail(
+                    $email
+                );
 
             if (!$employee) {
-                return $this->error('Employee profile not found.', 404);
+                return $this->error(
+                    'Employee profile not found.',
+                    404
+                );
             }
 
             return [
@@ -215,82 +215,99 @@ class EmployeeService
                 'data' => $employee,
                 'statusCode' => 200
             ];
+
         } catch (Throwable $e) {
+
             $this->logException($e);
-            return $this->error('Failed to retrieve employee profile.', 500);
+
+            return $this->error(
+                'Failed to retrieve employee profile.',
+                500
+            );
         }
     }
 
-    public function getOwnDepartment(string $email): array
-{
-    try {
-        $employeeRepository = new EmployeeRepository(
-            DBConfig::getConnection()
-        );
+    public function getOwnDepartment(
+        string $email
+    ): array {
 
-        $employee = $employeeRepository->getByEmail($email);
+        try {
 
-        if (!$employee) {
+            $employee =
+                $this->employeeRepository->getByEmail(
+                    $email
+                );
+
+            if (!$employee) {
+                return $this->error(
+                    'Employee profile not found.',
+                    404
+                );
+            }
+
+            $departmentId =
+                (int) $employee['department_id'];
+
+            $department =
+                $this->departmentRepository->getById(
+                    $departmentId
+                );
+
+            if (!$department) {
+                return $this->error(
+                    'Department not found.',
+                    404
+                );
+            }
+
+            $employees =
+                $this->employeeRepository->getByDepartmentId(
+                    $departmentId
+                );
+
+            $department['employee_count'] =
+                count($employees);
+
+            $department['employees'] =
+                $employees;
+
+            return [
+                'success' => true,
+                'data' => $department,
+                'statusCode' => 200
+            ];
+
+        } catch (Throwable $e) {
+
+            $this->logException($e);
+
             return $this->error(
-                'Employee profile not found.',
-                404
+                'Failed to retrieve department.',
+                500
             );
         }
-
-        $departmentRepository = new DepartmentRepository(
-            DBConfig::getConnection()
-        );
-
-        $department = $departmentRepository->getById(
-            (int) $employee['department_id']
-        );
-
-        if (!$department) {
-            return $this->error(
-                'Department not found.',
-                404
-            );
-        }
-
-        $employees = $employeeRepository->getByDepartmentId(
-            (int) $employee['department_id']
-        );
-
-        $department['employee_count'] = count($employees);
-        $department['employees'] = $employees;
-
-        return [
-            'success' => true,
-            'data' => $department,
-            'statusCode' => 200
-        ];
-
-    } catch (Throwable $e) {
-
-        $this->logException($e);
-
-        return $this->error(
-            'Failed to retrieve department.',
-            500
-        );
     }
-}
 
     public function updateOwnProfile(
         string $email,
         array $data,
         ?array $file = null
     ): array {
+
         $uploadedPhotoPath = null;
 
         try {
-            $repository = new EmployeeRepository(
-                DBConfig::getConnection()
-            );
-            $employee = $repository->getByEmail($email);
+
+            $employee =
+                $this->employeeRepository->getByEmail(
+                    $email
+                );
 
             if (!$employee) {
-                return $this->error('Employee profile not found.', 404);
+                return $this->error(
+                    'Employee profile not found.',
+                    404
+                );
             }
 
             $permittedFields = [
@@ -299,68 +316,136 @@ class EmployeeService
                 'gender',
                 'date_of_birth'
             ];
-            $updateData = array_intersect_key(
-                $data,
-                array_flip($permittedFields)
-            );
 
-            $validationError = EmployeeValidator::validateUpdate($updateData);
+            $updateData =
+                array_intersect_key(
+                    $data,
+                    array_flip($permittedFields)
+                );
+
+            $validationError =
+                EmployeeValidator::validateUpdate(
+                    $updateData
+                );
 
             if ($validationError !== null) {
                 return $validationError;
             }
 
-            foreach (['address', 'phone', 'gender', 'date_of_birth'] as $field) {
-                if (array_key_exists($field, $updateData)) {
-                    $updateData[$field] = trim((string) $updateData[$field]);
+            foreach (
+                [
+                    'address',
+                    'phone',
+                    'gender',
+                    'date_of_birth'
+                ] as $field
+            ) {
+                if (
+                    array_key_exists(
+                        $field,
+                        $updateData
+                    )
+                ) {
+                    $updateData[$field] =
+                        trim(
+                            (string) $updateData[$field]
+                        );
                 }
             }
 
             if (
-                array_key_exists('address', $updateData) &&
+                array_key_exists(
+                    'address',
+                    $updateData
+                ) &&
                 $updateData['address'] === ''
             ) {
-                return $this->error('Address is required.', 400);
+                return $this->error(
+                    'Address is required.',
+                    400
+                );
             }
 
-            if ($file !== null && $file['error'] !== UPLOAD_ERR_NO_FILE) {
-                $uploadResult = $this->uploadProfilePhoto($file);
+            if (
+                $file !== null &&
+                $file['error'] !==
+                UPLOAD_ERR_NO_FILE
+            ) {
 
-                if (is_array($uploadResult) && $uploadResult['success'] === false) {
+                $uploadResult =
+                    $this->uploadProfilePhoto(
+                        $file
+                    );
+
+                if (
+                    is_array($uploadResult) &&
+                    $uploadResult['success'] === false
+                ) {
                     return $uploadResult;
                 }
 
-                $uploadedPhotoPath = $uploadResult;
-                $updateData['profile_photo'] = $uploadedPhotoPath;
+                $uploadedPhotoPath =
+                    $uploadResult;
+
+                $updateData['profile_photo'] =
+                    $uploadedPhotoPath;
             }
 
             if (empty($updateData)) {
-                return $this->error('No permitted fields were provided.', 400);
+                return $this->error(
+                    'No permitted fields were provided.',
+                    400
+                );
             }
 
-            if (!$repository->update((int) $employee['id'], $updateData)) {
-                $this->deletePhoto($uploadedPhotoPath);
-                return $this->error('Failed to update employee profile.', 500);
+            if (
+                !$this->employeeRepository->update(
+                    (int) $employee['id'],
+                    $updateData
+                )
+            ) {
+
+                $this->deletePhoto(
+                    $uploadedPhotoPath
+                );
+
+                return $this->error(
+                    'Failed to update employee profile.',
+                    500
+                );
             }
 
             if ($uploadedPhotoPath !== null) {
-                $this->deletePhoto($employee['profile_photo'] ?? null);
+                $this->deletePhoto(
+                    $employee['profile_photo'] ?? null
+                );
             }
 
             return [
                 'success' => true,
-                'message' => 'Profile updated successfully.',
+                'message' =>
+                    'Profile updated successfully.',
                 'statusCode' => 200
             ];
+
         } catch (Throwable $e) {
-            $this->deletePhoto($uploadedPhotoPath);
+
+            $this->deletePhoto(
+                $uploadedPhotoPath
+            );
+
             $this->logException($e);
-            return $this->error('Failed to update employee profile.', 500);
+
+            return $this->error(
+                'Failed to update employee profile.',
+                500
+            );
         }
     }
 
     public function createEmployee(
-        array $data, string $file
+        array $data,
+        string $file
     ): array {
 
         $uploadedPhotoPath = null;
@@ -401,20 +486,11 @@ class EmployeeService
                 return $validationError;
             }
 
-            $conn =
-                DBConfig::getConnection();
-
-            $departmentRepository =
-                new DepartmentRepository($conn);
-
-            $employeeRepository =
-                new EmployeeRepository($conn);
-
             $departmentId =
                 (int) $data['department_id'];
 
             $department =
-                $departmentRepository->getById(
+                $this->departmentRepository->getById(
                     $departmentId
                 );
 
@@ -434,14 +510,21 @@ class EmployeeService
                     400
                 );
             }
-            $email = trim((string)$data['email']);
 
-                if ($employeeRepository->findByEmail($email)) {
-                    return $this->error(
-                        'Email already exists.',
-                        409
-                    );
-                }
+            $email =
+                trim(
+                    (string) $data['email']
+                );
+
+            if (
+                $this->employeeRepository
+                    ->findByEmail($email)
+            ) {
+                return $this->error(
+                    'Email already exists.',
+                    409
+                );
+            }
 
             $uploadResult =
                 $this->uploadProfilePhoto(
@@ -459,7 +542,7 @@ class EmployeeService
                 $uploadResult;
 
             $saved =
-                $employeeRepository->create(
+                $this->employeeRepository->create(
                     trim(
                         (string) $data['first_name']
                     ),
@@ -548,14 +631,8 @@ class EmployeeService
                 );
             }
 
-            $conn =
-                DBConfig::getConnection();
-
-            $employeeRepository =
-                new EmployeeRepository($conn);
-
             $employee =
-                $employeeRepository->getById(
+                $this->employeeRepository->getById(
                     $employeeId
                 );
 
@@ -703,13 +780,8 @@ class EmployeeService
                 $departmentId =
                     (int) $data['department_id'];
 
-                $departmentRepository =
-                    new DepartmentRepository(
-                        $conn
-                    );
-
                 $department =
-                    $departmentRepository->getById(
+                    $this->departmentRepository->getById(
                         $departmentId
                     );
 
@@ -831,7 +903,7 @@ class EmployeeService
             }
 
             $updated =
-                $employeeRepository->update(
+                $this->employeeRepository->update(
                     $employeeId,
                     $updateData
                 );
@@ -891,14 +963,8 @@ class EmployeeService
                 );
             }
 
-            $conn =
-                DBConfig::getConnection();
-
-            $employeeRepository =
-                new EmployeeRepository($conn);
-
             $employee =
-                $employeeRepository->getById(
+                $this->employeeRepository->getById(
                     $employeeId
                 );
 
@@ -920,7 +986,7 @@ class EmployeeService
             }
 
             $deactivated =
-                $employeeRepository->deactivate(
+                $this->employeeRepository->deactivate(
                     $employeeId
                 );
 
@@ -1049,3 +1115,4 @@ class EmployeeService
         );
     }
 }
+

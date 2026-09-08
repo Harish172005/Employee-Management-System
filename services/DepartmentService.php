@@ -1,24 +1,45 @@
+
 <?php
 
-require_once __DIR__ . '/../config/dbConfig.php';
-require_once __DIR__ . '/../models/DepartmentRepository.php';
-require_once __DIR__ . '/../models/EmployeeRepository.php';
+require_once __DIR__ . '/../models/DepartmentRepositoryInterface.php';
+require_once __DIR__ . '/../models/EmployeeRepositoryInterface.php';
 require_once __DIR__ . '/../traits/FieldValidationTrait.php';
 
 class DepartmentService
 {
     use FieldValidationTrait;
+
+    private DepartmentRepositoryInterface $departmentRepository;
+    private EmployeeRepositoryInterface $employeeRepository;
+
+    public function __construct(
+        DepartmentRepositoryInterface $departmentRepository,
+        EmployeeRepositoryInterface $employeeRepository
+    ) {
+        $this->departmentRepository = $departmentRepository;
+        $this->employeeRepository = $employeeRepository;
+    }
+
     public function createDepartment(array $data): array
     {
         $requiredFields = ['department_name', 'status'];
 
-        $requiredError = $this->validateRequiredFields($data, $requiredFields);
+        $requiredError = $this->validateRequiredFields(
+            $data,
+            $requiredFields
+        );
+
         if ($requiredError !== null) {
             return $requiredError;
         }
 
-        $departmentName = trim((string)$data['department_name']);
-        $status = trim((string)$data['status']);
+        $departmentName = trim(
+            (string) $data['department_name']
+        );
+
+        $status = trim(
+            (string) $data['status']
+        );
 
         if (!in_array($status, ['active', 'inactive'], true)) {
             return [
@@ -28,15 +49,15 @@ class DepartmentService
             ];
         }
 
-        $description = isset($data['description']) ? trim((string)$data['description']) : null;
+        $description = isset($data['description'])
+            ? trim((string) $data['description'])
+            : null;
+
         if ($description === '') {
             $description = null;
         }
 
-        $conn = DBConfig::getConnection();
-        $departmentRepository = new DepartmentRepository($conn);
-
-        if ($departmentRepository->findByName($departmentName)) {
+        if ($this->departmentRepository->findByName($departmentName)) {
             return [
                 'success' => false,
                 'message' => 'Department already exists.',
@@ -44,7 +65,7 @@ class DepartmentService
             ];
         }
 
-        $created = $departmentRepository->create(
+        $created = $this->departmentRepository->create(
             $departmentName,
             $description,
             $status
@@ -66,188 +87,177 @@ class DepartmentService
     }
 
     public function getDepartments(
-    ?string $search = null,
-    ?string $status = null
-): array {
-    $search = $search !== null
-        ? trim($search)
-        : null;
+        ?string $search = null,
+        ?string $status = null
+    ): array {
+        $search = $search !== null
+            ? trim($search)
+            : null;
 
-    $status = $status !== null
-        ? trim($status)
-        : null;
+        $status = $status !== null
+            ? trim($status)
+            : null;
 
-    if (
-        $status !== null &&
-        $status !== '' &&
-        !in_array(
+        if (
+            $status !== null &&
+            $status !== '' &&
+            !in_array(
+                $status,
+                ['active', 'inactive'],
+                true
+            )
+        ) {
+            return [
+                'success' => false,
+                'message' => 'Invalid status filter.',
+                'statusCode' => 400
+            ];
+        }
+
+        $departments = $this->departmentRepository->getFiltered(
+            $search,
+            $status
+        );
+
+        return [
+            'success' => true,
+            'message' => 'Departments retrieved successfully.',
+            'data' => $departments,
+            'statusCode' => 200
+        ];
+    }
+
+    public function updateDepartment(
+        int $id,
+        array $data
+    ): array {
+        if ($id <= 0) {
+            return [
+                'success' => false,
+                'message' => 'Invalid department ID.',
+                'statusCode' => 400
+            ];
+        }
+
+        $requiredFields = [
+            'department_name',
+            'status'
+        ];
+
+        $requiredError = $this->validateRequiredFields(
+            $data,
+            $requiredFields
+        );
+
+        if ($requiredError !== null) {
+            return $requiredError;
+        }
+
+        $departmentName = trim(
+            (string) $data['department_name']
+        );
+
+        $status = trim(
+            (string) $data['status']
+        );
+
+        $description = isset($data['description'])
+            ? trim((string) $data['description'])
+            : null;
+
+        if ($description === '') {
+            $description = null;
+        }
+
+        if (!in_array(
             $status,
             ['active', 'inactive'],
             true
-        )
-    ) {
+        )) {
+            return [
+                'success' => false,
+                'message' => 'Status must be active or inactive.',
+                'statusCode' => 400
+            ];
+        }
+
+        $department = $this->departmentRepository->getById($id);
+
+        if (!$department) {
+            return [
+                'success' => false,
+                'message' => 'Department not found.',
+                'statusCode' => 404
+            ];
+        }
+
+        if (
+            $department['department_name'] !== $departmentName &&
+            $this->departmentRepository->findByName($departmentName)
+        ) {
+            return [
+                'success' => false,
+                'message' => 'Department name already exists.',
+                'statusCode' => 409
+            ];
+        }
+
+        $updated = $this->departmentRepository->update(
+            $id,
+            [
+                'department_name' => $departmentName,
+                'description' => $description,
+                'status' => $status
+            ]
+        );
+
+        if (!$updated) {
+            return [
+                'success' => false,
+                'message' => 'Failed to update department.',
+                'statusCode' => 500
+            ];
+        }
+
         return [
-            'success' => false,
-            'message' => 'Invalid status filter.',
-            'statusCode' => 400
+            'success' => true,
+            'message' => 'Department updated successfully.',
+            'statusCode' => 200
         ];
     }
 
-    $conn = DBConfig::getConnection();
-    $repository = new DepartmentRepository($conn);
+    public function getDepartmentById(int $id): array
+    {
+        if ($id <= 0) {
+            return [
+                'success' => false,
+                'message' => 'Invalid department ID.',
+                'statusCode' => 400
+            ];
+        }
 
-    $departments = $repository->getFiltered(
-        $search,
-        $status
-    );
+        $department = $this->departmentRepository->getById($id);
 
-    return [
-        'success' => true,
-        'message' => 'Departments retrieved successfully.',
-        'data' => $departments,
-        'statusCode' => 200
-    ];
-}
+        if (!$department) {
+            return [
+                'success' => false,
+                'message' => 'Department not found.',
+                'statusCode' => 404
+            ];
+        }
 
-public function updateDepartment(int $id, array $data): array
-{
-    if ($id <= 0) {
         return [
-            'success' => false,
-            'message' => 'Invalid department ID.',
-            'statusCode' => 400
+            'success' => true,
+            'message' => 'Department retrieved successfully.',
+            'data' => $department,
+            'statusCode' => 200
         ];
     }
 
-    $requiredFields = [
-        'department_name',
-        'status'
-    ];
-
-    $requiredError = $this->validateRequiredFields(
-        $data,
-        $requiredFields
-    );
-
-    if ($requiredError !== null) {
-        return $requiredError;
-    }
-
-    $departmentName = trim(
-        (string) $data['department_name']
-    );
-
-    $status = trim(
-        (string) $data['status']
-    );
-
-    $description = isset($data['description'])
-        ? trim((string) $data['description'])
-        : null;
-
-    if ($description === '') {
-        $description = null;
-    }
-
-    if (!in_array(
-        $status,
-        ['active', 'inactive'],
-        true
-    )) {
-        return [
-            'success' => false,
-            'message' => 'Status must be active or inactive.',
-            'statusCode' => 400
-        ];
-    }
-
-    $conn = DBConfig::getConnection();
-
-    $repository = new DepartmentRepository($conn);
-
-    $department = $repository->getById($id);
-
-    if (!$department) {
-        return [
-            'success' => false,
-            'message' => 'Department not found.',
-            'statusCode' => 404
-        ];
-    }
-
-    if (
-        $department['department_name'] !== $departmentName &&
-        $repository->findByName($departmentName)
-    ) {
-        return [
-            'success' => false,
-            'message' => 'Department name already exists.',
-            'statusCode' => 409
-        ];
-    }
-
-    $updated = $repository->update(
-        $id,
-        [
-            'department_name' => $departmentName,
-            'description' => $description,
-            'status' => $status
-        ]
-    );
-
-    if (!$updated) {
-        return [
-            'success' => false,
-            'message' => 'Failed to update department.',
-            'statusCode' => 500
-        ];
-    }
-
-    return [
-        'success' => true,
-        'message' => 'Department updated successfully.',
-        'statusCode' => 200
-    ];
-  }
-
-  public function getDepartmentById(int $id): array
-{
-    if ($id <= 0) {
-        return [
-            'success' => false,
-            'message' => 'Invalid department ID.',
-            'statusCode' => 400
-        ];
-    }
-
-    $conn = DBConfig::getConnection();
-
-    $repository = new DepartmentRepository($conn);
-
-    $department = $repository->getById($id);
-
-    if (!$department) {
-        return [
-            'success' => false,
-            'message' => 'Department not found.',
-            'statusCode' => 404
-        ];
-    }
-
-    return [
-        'success' => true,
-        'message' => 'Department retrieved successfully.',
-        'data' => $department,
-        'statusCode' => 200
-    ];
-}
-
-public function deactivateDepartment(
+    public function deactivateDepartment(
         int $departmentId
     ): array {
-
         try {
-
             if ($departmentId <= 0) {
                 return $this->error(
                     'Invalid department ID.',
@@ -255,16 +265,9 @@ public function deactivateDepartment(
                 );
             }
 
-            $conn =
-                DBConfig::getConnection();
-
-            $departmentRepository =
-                new DepartmentRepository($conn);
-
-            $department =
-                $departmentRepository->getById(
-                    $departmentId
-                );
+            $department = $this->departmentRepository->getById(
+                $departmentId
+            );
 
             if (!$department) {
                 return $this->error(
@@ -273,21 +276,15 @@ public function deactivateDepartment(
                 );
             }
 
-            if (
-                $department['status'] ===
-                'inactive'
-            ) {
+            if ($department['status'] === 'inactive') {
                 return $this->error(
                     'Department is already inactive.',
                     400
                 );
             }
 
-            $employeeRepository =
-                new EmployeeRepository($conn);
-
             if (
-                $employeeRepository->hasEmployeesInDepartment(
+                $this->employeeRepository->hasEmployeesInDepartment(
                     $departmentId
                 )
             ) {
@@ -297,10 +294,9 @@ public function deactivateDepartment(
                 );
             }
 
-            $deactivated =
-                $departmentRepository->deactivate(
-                    $departmentId
-                );
+            $deactivated = $this->departmentRepository->deactivate(
+                $departmentId
+            );
 
             if (!$deactivated) {
                 return $this->error(
@@ -311,13 +307,10 @@ public function deactivateDepartment(
 
             return [
                 'success' => true,
-                'message' =>
-                    'Department deactivated successfully.',
+                'message' => 'Department deactivated successfully.',
                 'statusCode' => 200
             ];
-
         } catch (Throwable $e) {
-
             $this->logException($e);
 
             return $this->error(
@@ -327,11 +320,10 @@ public function deactivateDepartment(
         }
     }
 
-     private function error(
+    private function error(
         string $message,
         int $statusCode
     ): array {
-
         return [
             'success' => false,
             'message' => $message,
@@ -342,15 +334,8 @@ public function deactivateDepartment(
     private function logException(
         Throwable $e
     ): void {
-
-        error_log(
-            $e->getMessage()
-        );
-
-        error_log(
-            $e->getTraceAsString()
-        );
+        error_log($e->getMessage());
+        error_log($e->getTraceAsString());
     }
 }
-
 
