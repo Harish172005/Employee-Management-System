@@ -74,16 +74,6 @@ if (
     exit;
 }
 
-if (
-    $_SERVER['REQUEST_METHOD'] === 'GET' &&
-    preg_match('/^api\/employees\/(\d+)$/', $uri, $matches)) {
-    require_once __DIR__ . '/../controllers/EmployeeController.php';
-
-    CsrfMiddleware::requireToken();
-    $controller = new EmployeeController();
-    $controller->updateOwnProfile();
-    exit;
-}
 
 
 
