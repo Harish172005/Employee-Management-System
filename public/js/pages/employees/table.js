@@ -254,15 +254,19 @@ function renderEmployees(employees) {
                                 )}
                             </td>
 
-                            <td>
-                                ${escapeHtml(
-                                    employee.salary || ''
-                                )}
+                           <td>
+                                <span class="badge ${
+                                    employee.status === 'active'
+                                        ? 'bg-success'
+                                        : 'bg-secondary'
+                                }">
+                                    ${escapeHtml(employee.status || '')}
+                                </span>
                             </td>
 
                             <td>
                                 ${escapeHtml(
-                                    employee.status || ''
+                                    employee.salary || ''
                                 )}
                             </td>
 

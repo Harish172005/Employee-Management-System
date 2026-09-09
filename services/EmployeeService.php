@@ -445,7 +445,7 @@ class EmployeeService
 
     public function createEmployee(
         array $data,
-        string $file
+        ?array $file = null
     ): array {
 
         $uploadedPhotoPath = null;
