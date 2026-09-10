@@ -49,7 +49,7 @@ if ($method === 'GET' && $uri === 'admin') {
 
     require __DIR__ . '/../middlewares/AuthMiddleware.php';
 
-    AuthMiddleware::requireRole(['admin']);
+    AuthMiddleware::requirePageRole(['admin']);
 
     require __DIR__ . '/../views/pages/admin/admin-dashboard.html';
 
@@ -60,7 +60,7 @@ if ($method === 'GET' && $uri === 'admin/add-user') {
 
     require __DIR__ . '/../middlewares/AuthMiddleware.php';
 
-    AuthMiddleware::requireRole(['admin']);
+    AuthMiddleware::requirePageRole(['admin']);
 
     require __DIR__ . '/../views/pages/admin/add-user.html';
 
@@ -71,7 +71,7 @@ if ($method === 'GET' && $uri === 'admin/add-employee') {
 
     require __DIR__ . '/../middlewares/AuthMiddleware.php';
 
-    AuthMiddleware::requireRole(['admin']);
+    AuthMiddleware::requirePageRole(['admin']);
 
     require __DIR__ . '/../views/pages/admin/add-employee.html';
 
@@ -82,7 +82,7 @@ if ($method === 'GET' && $uri === 'admin/add-department') {
 
     require __DIR__ . '/../middlewares/AuthMiddleware.php';
 
-    AuthMiddleware::requireRole(['admin']);
+    AuthMiddleware::requirePageRole(['admin']);
 
     require __DIR__ . '/../views/pages/admin/add-department.html';
 
@@ -93,7 +93,7 @@ if ($method === 'GET' && $uri === 'admin/employees') {
 
     require __DIR__ . '/../middlewares/AuthMiddleware.php';
 
-    AuthMiddleware::requireRole(['admin']);
+    AuthMiddleware::requirePageRole(['admin']);
 
     require __DIR__ . '/../views/pages/admin/admin-employees.html';
 
@@ -111,7 +111,7 @@ if ($method === 'GET' && $uri === 'employee') {
 
     require __DIR__ . '/../middlewares/AuthMiddleware.php';
 
-    AuthMiddleware::requireRole(['employee']);
+    AuthMiddleware::requirePageRole(['employee']);
 
     require __DIR__ . '/../views/pages/employee/employee-dashboard.html';
 
@@ -122,7 +122,7 @@ if ($method === 'GET' && $uri === 'employee/profile') {
 
     require __DIR__ . '/../middlewares/AuthMiddleware.php';
 
-    AuthMiddleware::requireRole(['employee']);
+    AuthMiddleware::requirePageRole(['employee']);
 
     require __DIR__ . '/../views/pages/employee/employee-profile.html';
 
@@ -133,7 +133,7 @@ if ($method === 'GET' && $uri === 'employee/department') {
 
     require __DIR__ . '/../middlewares/AuthMiddleware.php';
 
-    AuthMiddleware::requireRole(['employee']);
+    AuthMiddleware::requirePageRole(['employee']);
 
     require __DIR__ . '/../views/pages/employee/employee-department.html';
 
@@ -144,7 +144,7 @@ if ($method === 'GET' && $uri === 'admin/departments') {
 
     require __DIR__ . '/../middlewares/AuthMiddleware.php';
 
-    AuthMiddleware::requireRole(['admin']);
+    AuthMiddleware::requirePageRole(['admin']);
 
     require __DIR__ . '/../views/pages/admin/department-management.html';
 

@@ -63,6 +63,23 @@ class AuthMiddleware
 
         if (!in_array($userRole, $allowedRoles, true)) {
             http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Forbidden: You do not have permission to access this resource'
+            ]);
+            exit;
+        }
+    }
+
+    public static function requirePageRole($requiredRole)
+    {
+        self::requireLogin();
+
+        $userRole = $_SESSION['role'] ?? null;
+        $allowedRoles = is_array($requiredRole) ? $requiredRole : [$requiredRole];
+
+        if (!in_array($userRole, $allowedRoles, true)) {
+            http_response_code(403);
 
         require __DIR__ . '/../views/403.html';
 
