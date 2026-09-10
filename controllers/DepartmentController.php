@@ -1,13 +1,33 @@
+
 <?php
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../middlewares/AuthMiddleware.php';
+require_once __DIR__ . '/../config/dbConfig.php';
+require_once __DIR__ . '/../models/DepartmentRepository.php';
+require_once __DIR__ . '/../models/EmployeeRepository.php';
 require_once __DIR__ . '/../services/DepartmentService.php';
 
 class DepartmentController extends BaseController
 {
+    private DepartmentService $service;
+
+    public function __construct()
+    {
+        $conn = DBConfig::getConnection();
+
+        $departmentRepository = new DepartmentRepository($conn);
+        $employeeRepository = new EmployeeRepository($conn);
+
+        $this->service = new DepartmentService(
+            $departmentRepository,
+            $employeeRepository
+        );
+    }
+
     public function createDepartment(): void
     {
         header('Content-Type: application/json');
@@ -26,106 +46,116 @@ class DepartmentController extends BaseController
             }
         }
 
-        $service = new DepartmentService();
-        $result = $service->createDepartment($data ?? []);
+        $result = $this->service->createDepartment(
+            $data ?? []
+        );
 
-        http_response_code($result['statusCode'] ?? 500);
-
-        echo json_encode([
-            'success' => $result['success'],
-            'message' => $result['message']
-        ]);
+        $this->respond(
+            $result['statusCode'] ?? 500,
+            [
+                'success' => $result['success'],
+                'message' => $result['message'] ?? null
+            ]
+        );
     }
+
     public function getDepartments(): void
     {
-    header('Content-Type: application/json');
+        header('Content-Type: application/json');
 
-    AuthMiddleware::requireLogin();
-    AuthMiddleware::requireAdmin();
+        AuthMiddleware::requireLogin();
+        AuthMiddleware::requireAdmin();
 
-    $search = $_GET['search'] ?? null;
-    $status = $_GET['status'] ?? null;
+        $search = $_GET['search'] ?? null;
+        $status = $_GET['status'] ?? null;
 
-        $service = new DepartmentService();
-
-        $result = $service->getDepartments(
+        $result = $this->service->getDepartments(
             $search,
             $status
         );
 
-    $this->respond($result['statusCode'] ?? 500, [
-        'success' => $result['success'],
-        'message' => $result['message'] ?? null,
-        'data' => $result['data'] ?? []
-    ]);
-  }
- 
-  public function updateDepartment(int $id): void
-{
-    header('Content-Type: application/json');
-
-    AuthMiddleware::requireLogin();
-    AuthMiddleware::requireAdmin();
-
-    $data = json_decode(
-        file_get_contents('php://input'),
-        true
-    );
-
-    $service = new DepartmentService();
-
-    $result = $service->updateDepartment($id, $data);
-
-    $this->respond(
-        $result['statusCode'] ?? 500,
-        [
-            'success' => $result['success'],
-            'message' => $result['message'] ?? null
-        ]
-    );
-}
-
-public function getDepartmentById($id) : void {
-    header('Content-Type: application/json');
-
-    AuthMiddleware::requireLogin();
-    AuthMiddleware::requireAdmin();
-
-     $service = new DepartmentService();
-
-    $result = $service->getDepartmentById($id);
-    $this->respond(
-        $result['statusCode'] ?? 500,
-        [
-            'success' => $result['success'],
-            'message' => $result['message'] ?? null,
-            'data' => $result['data'] ?? null
-        ]
-    );
-
-}
-
-public function deactivateDepartment(int $departmentId): void
-{
-    header('Content-Type: application/json');
-
-    AuthMiddleware::requireLogin();
-    AuthMiddleware::requireAdmin();
-
-    if ($departmentId <= 0) {
-        $this->respond(400, [
-            'success' => false,
-            'message' => 'Invalid department ID.'
-        ]);
-        return;
+        $this->respond(
+            $result['statusCode'] ?? 500,
+            [
+                'success' => $result['success'],
+                'message' => $result['message'] ?? null,
+                'data' => $result['data'] ?? []
+            ]
+        );
     }
 
-    $service = new DepartmentService();
-    $result = $service->deactivateDepartment($departmentId);
+    public function updateDepartment(int $id): void
+    {
+        header('Content-Type: application/json');
 
-    $this->respond($result['statusCode'] ?? 500, [
-        'success' => $result['success'],
-        'message' => $result['message'] ?? null
-    ]);
+        AuthMiddleware::requireLogin();
+        AuthMiddleware::requireAdmin();
+
+        $data = json_decode(
+            file_get_contents('php://input'),
+            true
+        );
+
+        $result = $this->service->updateDepartment(
+            $id,
+            $data ?? []
+        );
+
+        $this->respond(
+            $result['statusCode'] ?? 500,
+            [
+                'success' => $result['success'],
+                'message' => $result['message'] ?? null
+            ]
+        );
+    }
+
+    public function getDepartmentById(int $id): void
+    {
+        header('Content-Type: application/json');
+
+        AuthMiddleware::requireLogin();
+        AuthMiddleware::requireAdmin();
+
+        $result = $this->service->getDepartmentById($id);
+
+        $this->respond(
+            $result['statusCode'] ?? 500,
+            [
+                'success' => $result['success'],
+                'message' => $result['message'] ?? null,
+                'data' => $result['data'] ?? null
+            ]
+        );
+    }
+
+    public function deactivateDepartment(
+        int $departmentId
+    ): void {
+        header('Content-Type: application/json');
+
+        AuthMiddleware::requireLogin();
+        AuthMiddleware::requireAdmin();
+
+        if ($departmentId <= 0) {
+            $this->respond(400, [
+                'success' => false,
+                'message' => 'Invalid department ID.'
+            ]);
+            return;
+        }
+
+        $result = $this->service->deactivateDepartment(
+            $departmentId
+        );
+
+        $this->respond(
+            $result['statusCode'] ?? 500,
+            [
+                'success' => $result['success'],
+                'message' => $result['message'] ?? null
+            ]
+        );
+    }
 }
-}
+

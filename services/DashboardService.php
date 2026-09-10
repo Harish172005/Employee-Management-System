@@ -15,6 +15,17 @@ class DashboardService
             $employeeSummary = $repository->getEmployeeSummary();
             $departments = $repository->getEmployeeCountByDepartment();
 
+            $formattedDepartments = [];
+
+            foreach ($departments as $department) {
+                $formattedDepartments[] = [
+                    'id' => (int) $department['id'],
+                    'name' => $department['department_name'],
+                    'status' => $department['status'],
+                    'employeeCount' => (int) $department['employee_count']
+                ];
+            }
+
             return [
                 'success' => true,
                 'data' => [
@@ -28,15 +39,8 @@ class DashboardService
                         $employeeSummary['inactive_employees'] ?? 0
                     ),
                     'totalDepartments' => $repository->getDepartmentCount(),
-                    'departments' => array_map(
-                        static fn (array $department): array => [
-                            'id' => (int) $department['id'],
-                            'name' => $department['department_name'],
-                            'status' => $department['status'],
-                            'employeeCount' => (int) $department['employee_count']
-                        ],
-                        $departments
-                    )
+                    
+                    'departments' => $formattedDepartments,
                 ],
                 'statusCode' => 200
             ];

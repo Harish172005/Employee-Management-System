@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Department - Employee</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+    <link rel="stylesheet" href="/style/style.css">
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container-fluid">
+
+        <a class="navbar-brand" href="/employee">
+            Employee Management System
+        </a>
+
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+
+                <!-- User Name -->
+                <li class="nav-item">
+                    <span class="nav-link" id="userDisplay"></span>
+                </li>
+
+                <!-- My Profile -->
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="/employee/profile">
+                        My Profile
+                    </a>
+                </li>
+
+                <!-- My Department -->
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="/employee/department">
+                        My Department
+                    </a>
+                </li>
+
+                <!-- Change Password -->
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="/change-password">
+                        Change Password
+                    </a>
+                </li>
+
+                <!-- Logout -->
+                <li class="nav-item ms-lg-2">
+                    <button class="btn btn-light btn-sm"
+                            onclick="logout()">
+                        Logout
+                    </button>
+                </li>
+
+            </ul>
+
+        </div>
+    </div>
+</nav>
+
+
+<div class="container py-5">
+
+    <div class="mb-4">
+        <h2 class="fw-semibold mb-1">
+            My Department
+        </h2>
+
+        <p class="text-muted mb-0">
+            View information about your department and your colleagues.
+        </p>
+    </div>
+
+
+    <div id="departmentMessage" class="alert d-none"></div>
+
+
+    <div id="departmentContainer">
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+
+                    <div>
+                        <h4
+                            class="mb-1"
+                            id="departmentName"
+                        >
+                            -
+                        </h4>
+
+                        <span
+                            class="badge"
+                            id="departmentStatus"
+                        >
+                            -
+                        </span>
+                    </div>
+
+                </div>
+
+
+                <div class="mb-4">
+
+                    <h6 class="fw-semibold">
+                        Description
+                    </h6>
+
+                    <p
+                        class="text-muted mb-0"
+                        id="departmentDescription"
+                    >
+                        -
+                    </p>
+
+                </div>
+
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+
+                        <div class="border rounded p-3">
+
+                            <small class="text-muted">
+                                Department ID
+                            </small>
+
+                            <h5
+                                class="mb-0 mt-1"
+                                id="departmentId"
+                            >
+                                -
+                            </h5>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="border rounded p-3">
+
+                            <small class="text-muted">
+                                Total Employees
+                            </small>
+
+                            <h5
+                                class="mb-0 mt-1"
+                                id="employeeCount"
+                            >
+                                -
+                            </h5>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card shadow-sm">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                    <div>
+                        <h5 class="mb-1">
+                            Department Employees
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            Employees currently assigned to your department.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+                                <th>Employee ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Designation</th>
+                                <th>Status</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="departmentEmployees">
+
+                            <tr>
+                                <td
+                                    colspan="5"
+                                    class="text-center text-muted py-4"
+                                >
+                                    Loading employees...
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="/js/pages/employee/employee-department.js"></script>
+
+<script src="/js/auth/logout.js"></script>
+<script src="/js/shared/csrf.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

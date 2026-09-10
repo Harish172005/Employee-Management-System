@@ -71,6 +71,22 @@ class AuthMiddleware
         }
     }
 
+    public static function requirePageRole($requiredRole)
+    {
+        self::requireLogin();
+
+        $userRole = $_SESSION['role'] ?? null;
+        $allowedRoles = is_array($requiredRole) ? $requiredRole : [$requiredRole];
+
+        if (!in_array($userRole, $allowedRoles, true)) {
+            http_response_code(403);
+
+        require __DIR__ . '/../views/403.html';
+
+        exit;
+        }
+    }
+
    
     public static function requireAdmin()
     {

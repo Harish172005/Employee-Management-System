@@ -3,9 +3,22 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 require_once __DIR__ . '/../services/AuthService.php';
+require_once __DIR__ .'/../models/UserRepository.php';
 
 class AuthController
 {
+    private AuthService $service;
+        public function __construct()
+       {
+        $conn = DBConfig::getConnection();
+
+        $userRepository = new UserRepository($conn);
+
+        $this->service = new AuthService(
+            $userRepository
+        );
+    }
+
     public function login()
     {
         header('Content-Type: application/json');
@@ -14,8 +27,7 @@ class AuthController
         $username = $data['username'] ?? '';
         $password = $data['password'] ?? '';
         
-        $service = new AuthService();
-        $result = $service->login($username, $password);
+        $result = $this->service->login($username, $password);
         
         if ($result['success']) {
             http_response_code(200);
@@ -28,8 +40,7 @@ class AuthController
     
     public function logout()
     {
-        $service = new AuthService();
-        $result = $service->logout();
+        $result = $this->service->logout();
         echo json_encode($result);
     }
 
@@ -45,9 +56,7 @@ class AuthController
     $currentPassword = $data['currentPassword'] ?? '';
     $newPassword = $data['newPassword'] ?? '';
 
-    $service = new AuthService();
-
-    $result = $service->changePassword(
+    $result = $this->service->changePassword(
         $currentPassword,
         $newPassword
     );

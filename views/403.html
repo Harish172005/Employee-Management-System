@@ -1,0 +1,55 @@
+<?php
+
+$dashboardUrl = $_SESSION['role'] === 'admin'
+    ? '/admin'
+    : '/employee';
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Access Denied</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="/style/style.css">
+</head>
+
+<body>
+
+    <main class="container min-vh-100 d-flex align-items-center justify-content-center">
+
+        <div class="text-center">
+
+            <div class="display-1 fw-bold text-danger">
+                403
+            </div>
+
+            <h1 class="fw-semibold mt-3">
+                Access Denied
+            </h1>
+
+            <p class="text-muted mb-4">
+                You do not have permission to access this page.
+            </p>
+
+            <a
+                href="<?= htmlspecialchars($dashboardUrl) ?>"
+                class="btn btn-primary"
+            >
+                Back to Dashboard
+            </a>
+
+        </div>
+
+    </main>
+
+</body>
+</html>
