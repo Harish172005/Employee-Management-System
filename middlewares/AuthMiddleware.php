@@ -63,11 +63,10 @@ class AuthMiddleware
 
         if (!in_array($userRole, $allowedRoles, true)) {
             http_response_code(403);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Forbidden: You do not have permission to access this resource'
-            ]);
-            exit;
+
+        require __DIR__ . '/../views/403.html';
+
+        exit;
         }
     }
 
