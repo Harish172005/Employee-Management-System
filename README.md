@@ -688,7 +688,6 @@ Unauthorized API requests return a JSON `403 Forbidden` response.
 * Prepared SQL statements
 * Input validation
 * Output escaping
-* Restricted field updates
 
 ---
 
@@ -717,24 +716,19 @@ Potential future improvements include:
 * Leave request and approval workflow
 * Employee notifications
 * Company announcements
-* Employee document management
 
 ### Admin Features
 
 * Advanced employee analytics
 * Attendance reports
 * Leave reports
-* Export employee data
-* Import employees using CSV
 * Advanced dashboard statistics
+* Company announcements
 
 ### Security
 
 * Two-factor authentication
 * Password reset via email
-* Login attempt tracking
-* Account lockout
-* Improved security logging
 
 ---
 
