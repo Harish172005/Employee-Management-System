@@ -323,6 +323,8 @@ class EmployeeService
                     array_flip($permittedFields)
                 );
 
+            
+
             $validationError =
                 EmployeeValidator::validateUpdate(
                     $updateData
@@ -641,6 +643,31 @@ class EmployeeService
                     'Employee not found.',
                     404
                 );
+            }
+
+            $requiredFields = [
+                'first_name',
+                'last_name',
+                'email',
+                'phone',
+                'date_of_birth',
+                'gender',
+                'date_of_joining',
+                'department_id',
+                'designation',
+                'salary',
+                'address',
+                'status'
+            ];
+
+            $requiredError =
+                $this->validateRequiredFields(
+                    $data,
+                    $requiredFields
+                );
+
+            if ($requiredError !== null) {
+                return $requiredError;
             }
 
             $validationError =

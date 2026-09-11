@@ -19,7 +19,7 @@ class AuthMiddleware
                 setcookie(
                     session_name(),
                     '',
-                    time() - 42000,
+                    time() - 1,
                     $params['path'],
                     $params['domain'],
                     $params['secure'],
@@ -97,37 +97,6 @@ class AuthMiddleware
     {
         self::requireRole('employee');
     }
-
-    
-    public static function getCurrentUser()
-    {
-        if (!isset($_SESSION['user_id'])) {
-            return null;
-        }
-
-        return [
-            'id' => $_SESSION['user_id'],
-            'name' => $_SESSION['user_name'],
-            'username' => $_SESSION['username'],
-            'email' => $_SESSION['email'],
-            'role' => $_SESSION['role'],
-            'status' => $_SESSION['status']
-        ];
-    }
-
-    
-    public static function requireActive()
-    {
-        self::requireLogin();
-
-        $status = $_SESSION['status'] ?? null;
-        if ($status !== 'active') {
-            http_response_code(403);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Your account has been deactivated'
-            ]);
-            exit;
-        }
-    }
+   
+   
 }
