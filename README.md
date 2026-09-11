@@ -454,11 +454,6 @@ Example request:
 POST /api/auth/logout
 ```
 
-#### Authentication Check
-
-```http
-GET /api/auth/check
-```
 
 #### Change Password
 

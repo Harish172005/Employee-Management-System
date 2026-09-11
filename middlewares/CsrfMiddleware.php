@@ -38,7 +38,6 @@ class CsrfMiddleware
         }
 
         $token = $_SERVER['HTTP_X_CSRF_TOKEN']
-            ?? $_SERVER['HTTP_X_CSRF-TOKEN']
             ?? $_POST['csrf_token']
             ?? null;
 

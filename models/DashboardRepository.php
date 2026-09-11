@@ -33,7 +33,7 @@ class DashboardRepository extends BaseRepository
                 COUNT(e.id) AS employee_count
              FROM departments d
              LEFT JOIN employees e ON e.department_id = d.id
-             GROUP BY d.id, d.department_name, d.status
+             GROUP BY d.department_name
              ORDER BY d.department_name ASC'
         );
 
